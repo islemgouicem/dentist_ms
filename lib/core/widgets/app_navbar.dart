@@ -1,5 +1,6 @@
 import 'package:dentist_ms/core/constants/app_colors.dart';
 import 'package:dentist_ms/core/constants/app_text_styles.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter/material.dart';
 
 class AppNavbar extends StatelessWidget {
@@ -32,7 +33,7 @@ class AppNavbar extends StatelessWidget {
         decoration: selected ? AppColors.selectedPage : null,
         child: Row(
           children: [
-            Image.asset(
+            SvgPicture.asset(
               iconPath,
               width: 24,
               height: 24,
