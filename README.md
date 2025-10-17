@@ -8,7 +8,7 @@
 ---
 
 ## 📁 Repo structure (brief)
-
+```text
 lib/
 ├── core/ # shared utilities, widgets, theme, services
 ├── data/ # DTOs, local/remote data sources, repo implementations
@@ -16,6 +16,7 @@ lib/
 ├── app.dart # app config (MaterialApp, theme, routes)
 ├── routes.dart # defines the app routings
 └── main.dart # app entry point
+```
 
 ---
 
@@ -113,7 +114,7 @@ Put unit, widget and integration tests here. Keep tests small and focused.
    ```
 
 ---
-
+```text
 dentist_ms/
 ├── pubspec.yaml
 ├── README.md  
@@ -261,8 +262,6 @@ dentist_ms/
 │ └── presentation/
 │ └── settings_page.dart
 │  
-│  
-│
 ├── test/
 │ ├── unit/
 │ ├── widget/
@@ -272,3 +271,4 @@ dentist_ms/
 │ ├── SRS.md
 │ └── ERD.png
 └
+```
