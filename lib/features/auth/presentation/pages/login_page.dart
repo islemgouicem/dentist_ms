@@ -25,7 +25,7 @@ class LoginPage extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text('Welcome', style: Theme.of(context).textTheme.titleLarge),
+              Text('Bienvenue', style: Theme.of(context).textTheme.titleLarge),
               const SizedBox(height: 16),
               TextField(
                 controller: emailController,
@@ -35,7 +35,7 @@ class LoginPage extends StatelessWidget {
               TextField(
                 controller: passController,
                 obscureText: true,
-                decoration: const InputDecoration(labelText: 'Password'),
+                decoration: const InputDecoration(labelText: 'Mot de passe'),
               ),
               const SizedBox(height: 18),
               ElevatedButton(
@@ -43,7 +43,7 @@ class LoginPage extends StatelessWidget {
                   // After successful login, open the main shell (dashboard index 0)
                   Navigator.pushReplacementNamed(context, AppRoutes.dashboardShell);
                 },
-                child: const Text('Login'),
+                child: const Text('Se connecter'),
               ),
             ],
           ),
