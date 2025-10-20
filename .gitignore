@@ -43,3 +43,16 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+
+# Auto-generated plugin registrant files (safe to ignore)
+**/GeneratedPluginRegistrant.*
+**/generated_plugin_registrant.*
+
+# Auto-generated plugin configuration (CMake)
+**/generated_plugins.cmake
+
+# Ephemeral build folders for desktop platforms
+windows/flutter/ephemeral/
+linux/flutter/ephemeral/
+macos/Flutter/ephemeral/
