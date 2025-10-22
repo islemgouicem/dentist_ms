@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 class AppTheme {
   static ThemeData lightTheme = ThemeData(
     scaffoldBackgroundColor: AppColors.background,
-    primaryColor: AppColors.primary,
+    primaryColor: AppColors.primary, 
     brightness: Brightness.light,
     appBarTheme: const AppBarTheme(
       backgroundColor: AppColors.white,
@@ -18,14 +18,16 @@ class AppTheme {
     ),
     cardTheme: CardThemeData(
       color: AppColors.white,
-      elevation: 4,
+      elevation: 14,
       shadowColor: AppColors.shadow,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
     ),
     inputDecorationTheme: InputDecorationTheme(
+      isDense: true,
+      alignLabelWithHint: true,
       filled: true,
-      fillColor: AppColors.white,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      fillColor: AppColors.cardgrey,
+      //contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       border: OutlineInputBorder(
         borderSide: const BorderSide(color: AppColors.border),
         borderRadius: BorderRadius.circular(8),
@@ -38,6 +40,11 @@ class AppTheme {
         borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
         borderRadius: BorderRadius.circular(8),
       ),
+    ),
+    textSelectionTheme: TextSelectionThemeData(
+      cursorColor: AppColors.primary,  
+      selectionColor: AppColors.primary.withOpacity(0.3),
+      selectionHandleColor: AppColors.primary,
     ),
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(

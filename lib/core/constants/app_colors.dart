@@ -13,7 +13,8 @@ class AppColors {
   static const Color cardPurple = Color(0xFF6A1B9A); // Total doctors
   static const Color cardOrange = Color(0xFFE65100); // Appointments
   static const Color cardPink = Color(0xFFCC25B0); // transactions
-
+  static const Color cardgrey = Color(0xFFF3F3F5); // input
+  
   // Text
   static const Color textPrimary = Color(0xFF1A1F36);
   static const Color textSecondary = Color(0xFFCAD5E2);
@@ -60,4 +61,6 @@ class AppColors {
       stops: [0.0, 0.5, 1.0],
     ),
   );
+
+  static Color? get textFieldBackground => null;
 }

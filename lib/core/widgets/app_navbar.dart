@@ -15,11 +15,11 @@ class AppNavbar extends StatelessWidget {
 
   // List of navbar items with their titles and icon paths
   final List<Map<String, String>> navItems = const [
-    {"title": "Dashboard", "icon": "assets/icons/dashboard.svg"},
-    {"title": "Patients", "icon": "assets/icons/patients.svg"},
-    {"title": "Appointments", "icon": "assets/icons/appointments.svg"},
-    {"title": "Billing", "icon": "assets/icons/billing.svg"},
-    {"title": "Settings", "icon": "assets/icons/settings.svg"},
+    {"title": "Tableau de bord", "icon": "assets/icons/dashboard.svg"},
+    {"title": "Patientes", "icon": "assets/icons/patients.svg"},
+    {"title": "Rendez-vous", "icon": "assets/icons/appointments.svg"},
+    {"title": "Facturation", "icon": "assets/icons/billing.svg"},
+    {"title": "Paramètres", "icon": "assets/icons/settings.svg"},
   ];
 
   Widget _buildNavItem(String title, String iconPath, int index) {
@@ -66,7 +66,7 @@ class AppNavbar extends StatelessWidget {
           const SizedBox(height: 30),
           Center(
             child: Text(
-              "Dentist",
+              "Dentiste",
               style: AppTextStyles.body1.copyWith(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
