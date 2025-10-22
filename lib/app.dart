@@ -9,7 +9,7 @@ class DentistApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Dentist Management System',
+      title: 'Système de gestion des dentistes',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
       initialRoute: AppRoutes.login,

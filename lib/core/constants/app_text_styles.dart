@@ -52,4 +52,18 @@ class AppTextStyles {
     fontWeight: FontWeight.w500,
     color: AppColors.textSecondary,
   );
+
+  static const TextStyle title = TextStyle(
+    fontWeight: FontWeight.w500,
+  );
+
+  static const TextStyle focused_label = TextStyle(
+    fontWeight: FontWeight.w600,
+    color: AppColors.primary,
+  );
+
+  static const TextStyle unfocused_label = TextStyle(
+    fontWeight: FontWeight.normal,
+    color: AppColors.textSecondary,
+  );
 }
