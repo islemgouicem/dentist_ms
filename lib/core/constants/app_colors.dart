@@ -19,6 +19,8 @@ class AppColors {
   static const Color textSecondary = Color(0xFFCAD5E2);
   static const Color textLight = Colors.white;
   static const Color textDark = Colors.black;
+  static const Color azure = Color(0xFF45556C);
+  static const Color azure_2 = Color(0xFF90A1B9);
 
   // Status colors
   static const Color statusCompleted = Color(0xFF43A047);
