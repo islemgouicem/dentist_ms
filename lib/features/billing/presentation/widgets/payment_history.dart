@@ -125,6 +125,7 @@ class BillingPaymentHistoryTable extends StatelessWidget {
             ),
           ),
           Container(
+            width: 100, // Fixed width for consistent badge size
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
               color: Colors.green.withOpacity(0.1),
@@ -132,6 +133,7 @@ class BillingPaymentHistoryTable extends StatelessWidget {
             ),
             child: Text(
               payment['status'],
+              textAlign: TextAlign.center, // Center the text
               style: AppTextStyles.body1.copyWith(
                 fontSize: 13,
                 color: Colors.green,

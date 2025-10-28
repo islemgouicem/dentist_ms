@@ -5,6 +5,108 @@ import 'status_badge.dart';
 import 'table_wrapper.dart';
 import '../../utils/billing_responsive_helper.dart';
 
+class BillingTableControls extends StatelessWidget {
+  final BillingResponsiveHelper responsive;
+  final String selectedStatus;
+  final Function(String) onStatusChanged;
+
+  const BillingTableControls({
+    Key? key,
+    required this.responsive,
+    this.selectedStatus = 'Tous les statuts',
+    required this.onStatusChanged,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.all(responsive.controlsPadding),
+      child: Row(
+        children: [
+          Expanded(child: _buildSearchField()),
+          const SizedBox(width: 16),
+          SizedBox(width: 200, child: _buildStatusDropdown()),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSearchField() {
+    return TextField(
+      decoration: InputDecoration(
+        hintText: 'Rechercher des factures...',
+        hintStyle: AppTextStyles.body1.copyWith(color: AppColors.textSecondary),
+        prefixIcon: Icon(
+          Icons.search,
+          size: 20,
+          color: AppColors.textSecondary,
+        ),
+        filled: true,
+        fillColor: AppColors.cardgrey,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide(color: AppColors.border),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide(color: AppColors.border),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide(color: AppColors.primary, width: 2),
+        ),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 12,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatusDropdown() {
+    return DropdownButtonFormField<String>(
+      value: selectedStatus,
+      decoration: InputDecoration(
+        filled: true,
+        fillColor: AppColors.cardgrey,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide(color: AppColors.border),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide(color: AppColors.border),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide(color: AppColors.primary, width: 2),
+        ),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 12,
+        ),
+      ),
+      items: ['Tous les statuts', 'Payé', 'Partiel', 'Non payé'].map((
+        String status,
+      ) {
+        return DropdownMenuItem<String>(
+          value: status,
+          child: Text(
+            status,
+            style: AppTextStyles.body1.copyWith(color: AppColors.textPrimary),
+          ),
+        );
+      }).toList(),
+      onChanged: (String? newValue) {
+        if (newValue != null) {
+          onStatusChanged(newValue);
+        }
+      },
+      icon: Icon(Icons.keyboard_arrow_down, color: AppColors.textSecondary),
+    );
+  }
+}
+
 class BillingDataTable extends StatelessWidget {
   final List<Map<String, dynamic>> invoices;
   final BillingResponsiveHelper responsive;
@@ -27,7 +129,6 @@ class BillingDataTable extends StatelessWidget {
         'Payé',
         'Solde',
         'Statut',
-        'Actions',
       ],
       rows: _buildRows(),
     );
@@ -62,7 +163,7 @@ class BillingDataTable extends StatelessWidget {
           ),
           Text(
             invoice['treatment'],
-            style: AppTextStyles.body1.copyWith(color: AppColors.textSecondary),
+            style: AppTextStyles.body1.copyWith(color: AppColors.textPrimary),
           ),
           Text(
             '\$${amount.toStringAsFixed(0)}',
@@ -83,34 +184,8 @@ class BillingDataTable extends StatelessWidget {
             ),
           ),
           BillingStatusBadge(status: invoice['status']),
-          _buildActionButtons(),
         ],
       );
     }).toList();
-  }
-
-  Widget _buildActionButtons() {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          width: 40,
-          height: 40,
-          decoration: BoxDecoration(
-            color: const Color(0xFF4A5568),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: IconButton(
-            icon: const Icon(Icons.description_outlined, size: 18),
-            color: Colors.white,
-            padding: EdgeInsets.zero,
-            onPressed: () {
-              // TODO: View invoice details
-            },
-            tooltip: 'Voir',
-          ),
-        ),
-      ],
-    );
   }
 }

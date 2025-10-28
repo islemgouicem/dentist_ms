@@ -10,29 +10,6 @@ class BillingHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (responsive.isMobile) {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Facturation & Factures',
-            style: AppTextStyles.headline1.copyWith(
-              fontSize: responsive.headerFontSize,
-            ),
-          ),
-          const SizedBox(height: 12),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton.icon(
-              onPressed: () => _showAddInvoiceDialog(context),
-              icon: const Icon(Icons.add, size: 20),
-              label: const Text('Nouvelle facture'),
-            ),
-          ),
-        ],
-      );
-    }
-
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [

@@ -16,18 +16,6 @@ class _AddServiceDialogState extends State<AddServiceDialog> {
   final _nameController = TextEditingController();
   final _priceController = TextEditingController();
   final _descriptionController = TextEditingController();
-  final _durationController = TextEditingController();
-
-  String? _selectedCategory;
-
-  final List<String> _categories = [
-    'Soins préventifs',
-    'Soins restaurateurs',
-    'Chirurgie',
-    'Orthodontie',
-    'Cosmétique',
-    'Urgence',
-  ];
 
   @override
   void initState() {
@@ -36,8 +24,6 @@ class _AddServiceDialogState extends State<AddServiceDialog> {
       _nameController.text = widget.service!['name'] ?? '';
       _priceController.text = widget.service!['price']?.toString() ?? '';
       _descriptionController.text = widget.service!['description'] ?? '';
-      _durationController.text = widget.service!['duration']?.toString() ?? '';
-      _selectedCategory = widget.service!['category'];
     }
   }
 
@@ -46,7 +32,7 @@ class _AddServiceDialogState extends State<AddServiceDialog> {
     _nameController.dispose();
     _priceController.dispose();
     _descriptionController.dispose();
-    _durationController.dispose();
+
     super.dispose();
   }
 
@@ -64,23 +50,22 @@ class _AddServiceDialogState extends State<AddServiceDialog> {
           children: [
             _buildHeader(isEditing),
             Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(24),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildNameField(),
-                      const SizedBox(height: 16),
-                      _buildCategoryDropdown(),
-                      const SizedBox(height: 16),
-                      _buildPriceField(),
-                      const SizedBox(height: 16),
-                      _buildDurationField(),
-                      const SizedBox(height: 16),
-                      _buildDescriptionField(),
-                    ],
+              child: Container(
+                color: Colors.white, // Add this to make the background white
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(24),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildNameField(),
+                        const SizedBox(height: 16),
+                        _buildPriceField(),
+                        const SizedBox(height: 16),
+                        _buildDescriptionField(),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -159,36 +144,6 @@ class _AddServiceDialogState extends State<AddServiceDialog> {
     );
   }
 
-  Widget _buildCategoryDropdown() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Catégorie',
-          style: AppTextStyles.body1.copyWith(
-            fontWeight: FontWeight.w600,
-            color: AppColors.textPrimary,
-          ),
-        ),
-        const SizedBox(height: 8),
-        DropdownButtonFormField<String>(
-          value: _selectedCategory,
-          decoration: _inputDecoration('Sélectionner une catégorie'),
-          items: _categories.map((category) {
-            return DropdownMenuItem(value: category, child: Text(category));
-          }).toList(),
-          onChanged: (value) => setState(() => _selectedCategory = value),
-          validator: (value) {
-            if (value == null || value.isEmpty) {
-              return 'Veuillez sélectionner une catégorie';
-            }
-            return null;
-          },
-        ),
-      ],
-    );
-  }
-
   Widget _buildPriceField() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -203,10 +158,9 @@ class _AddServiceDialogState extends State<AddServiceDialog> {
         const SizedBox(height: 8),
         TextFormField(
           controller: _priceController,
-          decoration: _inputDecoration('0.00').copyWith(
-            prefixText: '\$ ',
-            prefixStyle: AppTextStyles.body1,
-          ),
+          decoration: _inputDecoration(
+            '0.00',
+          ).copyWith(prefixText: '\$ ', prefixStyle: AppTextStyles.body1),
           keyboardType: TextInputType.number,
           validator: (value) {
             if (value == null || value.isEmpty) {
@@ -214,36 +168,6 @@ class _AddServiceDialogState extends State<AddServiceDialog> {
             }
             if (double.tryParse(value) == null) {
               return 'Veuillez entrer un prix valide';
-            }
-            return null;
-          },
-        ),
-      ],
-    );
-  }
-
-  Widget _buildDurationField() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Durée (minutes)',
-          style: AppTextStyles.body1.copyWith(
-            fontWeight: FontWeight.w600,
-            color: AppColors.textPrimary,
-          ),
-        ),
-        const SizedBox(height: 8),
-        TextFormField(
-          controller: _durationController,
-          decoration: _inputDecoration('Ex: 30'),
-          keyboardType: TextInputType.number,
-          validator: (value) {
-            if (value == null || value.isEmpty) {
-              return 'La durée est requise';
-            }
-            if (int.tryParse(value) == null) {
-              return 'Veuillez entrer une durée valide';
             }
             return null;
           },
@@ -357,9 +281,9 @@ class _AddServiceDialogState extends State<AddServiceDialog> {
     if (_formKey.currentState!.validate()) {
       final service = {
         'name': _nameController.text,
-        'category': _selectedCategory,
+
         'price': double.parse(_priceController.text),
-        'duration': int.parse(_durationController.text),
+
         'description': _descriptionController.text,
       };
 

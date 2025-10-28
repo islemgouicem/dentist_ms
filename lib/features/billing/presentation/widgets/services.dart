@@ -83,11 +83,6 @@ class BillingServiceCatalogControls extends StatelessWidget {
           fontWeight: FontWeight.w600,
         ),
       ),
-      style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.black,
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-      ),
     );
   }
 }

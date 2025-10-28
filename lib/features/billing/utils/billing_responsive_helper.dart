@@ -5,7 +5,6 @@ class BillingResponsiveHelper {
 
   BillingResponsiveHelper(this.screenWidth);
 
-  bool get isMobile => screenWidth < 768;
   bool get isTablet => screenWidth >= 768 && screenWidth < 1024;
   bool get isDesktop => screenWidth >= 1024;
 
@@ -15,7 +14,6 @@ class BillingResponsiveHelper {
   double get sectionSpacing => isDesktop ? 24 : 16;
 
   double get headerFontSize {
-    if (isMobile) return 22;
     if (isTablet) return 24;
     return 28;
   }

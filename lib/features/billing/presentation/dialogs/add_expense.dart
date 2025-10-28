@@ -3,7 +3,7 @@ import 'package:dentist_ms/core/constants/app_colors.dart';
 import 'package:dentist_ms/core/constants/app_text_styles.dart';
 
 class AddExpenseDialog extends StatefulWidget {
-  final Map<String, dynamic>? expense; // For editing existing expense
+  final Map<String, dynamic>? expense;
 
   const AddExpenseDialog({Key? key, this.expense}) : super(key: key);
 
@@ -31,14 +31,6 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
     'Formation',
     'Entretien',
     'Autre',
-  ];
-
-  final List<String> _paymentMethods = [
-    'Espèces',
-    'Carte de crédit',
-    'Carte de débit',
-    'Virement bancaire',
-    'Chèque',
   ];
 
   @override
@@ -78,25 +70,27 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
           children: [
             _buildHeader(isEditing),
             Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(24),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildDescriptionField(),
-                      const SizedBox(height: 16),
-                      _buildCategoryDropdown(),
-                      const SizedBox(height: 16),
-                      _buildAmountField(),
-                      const SizedBox(height: 16),
-                      _buildDatePicker(),
-                      const SizedBox(height: 16),
-                      _buildPaymentMethodDropdown(),
-                      const SizedBox(height: 16),
-                      _buildNotesField(),
-                    ],
+              child: Container(
+                color: Colors.white,
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(24),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildDescriptionField(),
+                        const SizedBox(height: 16),
+                        _buildCategoryDropdown(),
+                        const SizedBox(height: 16),
+                        _buildAmountField(),
+                        const SizedBox(height: 16),
+                        _buildDatePicker(),
+                        const SizedBox(height: 16),
+
+                        _buildNotesField(),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -127,11 +121,7 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
               color: Colors.red.withOpacity(0.1),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: const Icon(
-              Icons.payments,
-              color: Colors.red,
-              size: 24,
-            ),
+            child: const Icon(Icons.payments, color: Colors.red, size: 24),
           ),
           const SizedBox(width: 12),
           Text(
@@ -219,10 +209,9 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
         const SizedBox(height: 8),
         TextFormField(
           controller: _amountController,
-          decoration: _inputDecoration('0.00').copyWith(
-            prefixText: '\$ ',
-            prefixStyle: AppTextStyles.body1,
-          ),
+          decoration: _inputDecoration(
+            '0.00',
+          ).copyWith(prefixText: '\$ ', prefixStyle: AppTextStyles.body1),
           keyboardType: TextInputType.number,
           validator: (value) {
             if (value == null || value.isEmpty) {
@@ -275,36 +264,6 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
               ],
             ),
           ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildPaymentMethodDropdown() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Méthode de paiement',
-          style: AppTextStyles.body1.copyWith(
-            fontWeight: FontWeight.w600,
-            color: AppColors.textPrimary,
-          ),
-        ),
-        const SizedBox(height: 8),
-        DropdownButtonFormField<String>(
-          value: _selectedPaymentMethod,
-          decoration: _inputDecoration('Sélectionner une méthode'),
-          items: _paymentMethods.map((method) {
-            return DropdownMenuItem(value: method, child: Text(method));
-          }).toList(),
-          onChanged: (value) => setState(() => _selectedPaymentMethod = value),
-          validator: (value) {
-            if (value == null || value.isEmpty) {
-              return 'Veuillez sélectionner une méthode de paiement';
-            }
-            return null;
-          },
         ),
       ],
     );

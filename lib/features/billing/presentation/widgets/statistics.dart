@@ -9,6 +9,8 @@ class BillingStatCard extends StatelessWidget {
   final IconData icon;
   final Color iconColor;
   final Color backgroundColor;
+  final String? trendPercentage;
+  final bool? isPositiveTrend;
 
   const BillingStatCard({
     Key? key,
@@ -17,6 +19,8 @@ class BillingStatCard extends StatelessWidget {
     required this.icon,
     required this.iconColor,
     required this.backgroundColor,
+    this.trendPercentage,
+    this.isPositiveTrend,
   }) : super(key: key);
 
   @override
@@ -26,48 +30,87 @@ class BillingStatCard extends StatelessWidget {
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
           color: AppColors.white,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: AppColors.shadow,
-              blurRadius: 10,
-              offset: const Offset(0, 2),
+              color: AppColors.shadow.withOpacity(0.08),
+              blurRadius: 20,
+              offset: const Offset(0, 4),
             ),
           ],
         ),
-        child: Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: backgroundColor,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Icon(icon, color: iconColor, size: 24),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    title,
-                    style: AppTextStyles.smallLabel,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: backgroundColor,
+                    borderRadius: BorderRadius.circular(12),
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    value,
-                    style: AppTextStyles.numberHighlight.copyWith(
-                      color: AppColors.textPrimary,
+                  child: Icon(icon, color: iconColor, size: 24),
+                ),
+                if (trendPercentage != null && isPositiveTrend != null)
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
                     ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                    decoration: BoxDecoration(
+                      color: isPositiveTrend!
+                          ? AppColors.statusCompleted.withOpacity(0.1)
+                          : AppColors.statusCancelled.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          isPositiveTrend!
+                              ? Icons.arrow_upward
+                              : Icons.arrow_downward,
+                          size: 14,
+                          color: isPositiveTrend!
+                              ? AppColors.statusCompleted
+                              : AppColors.statusCancelled,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          trendPercentage!,
+                          style: AppTextStyles.smallLabel.copyWith(
+                            color: isPositiveTrend!
+                                ? AppColors.statusCompleted
+                                : AppColors.statusCancelled,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ],
+              ],
+            ),
+            const SizedBox(height: 16),
+            Text(
+              title,
+              style: AppTextStyles.smallLabel.copyWith(
+                color: AppColors.textSecondary,
               ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              value,
+              style: AppTextStyles.numberHighlight.copyWith(
+                color: AppColors.textPrimary,
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
           ],
         ),
@@ -96,18 +139,7 @@ class BillingStatisticsSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final cards = _buildCards();
 
-    if (responsive.isMobile) {
-      return Column(
-        children: cards
-            .map(
-              (card) => Padding(
-                padding: const EdgeInsets.only(bottom: 12.0),
-                child: card,
-              ),
-            )
-            .toList(),
-      );
-    } else if (responsive.isTablet) {
+    if (responsive.isTablet) {
       return Column(
         children: [
           Row(children: [cards[0], const SizedBox(width: 12), cards[1]]),
@@ -138,6 +170,8 @@ class BillingStatisticsSection extends StatelessWidget {
         icon: Icons.attach_money,
         iconColor: AppColors.cardGreen,
         backgroundColor: AppColors.cardGreen.withOpacity(0.1),
+        trendPercentage: '+20%',
+        isPositiveTrend: true,
       ),
       BillingStatCard(
         title: 'Paiements en attente',
@@ -145,6 +179,8 @@ class BillingStatisticsSection extends StatelessWidget {
         icon: Icons.pending_actions,
         iconColor: AppColors.cardOrange,
         backgroundColor: AppColors.cardOrange.withOpacity(0.1),
+        trendPercentage: '-15%',
+        isPositiveTrend: false,
       ),
       BillingStatCard(
         title: 'En retard',
@@ -152,6 +188,8 @@ class BillingStatisticsSection extends StatelessWidget {
         icon: Icons.warning_amber,
         iconColor: AppColors.statusCancelled,
         backgroundColor: AppColors.statusCancelled.withOpacity(0.1),
+        trendPercentage: '+18%',
+        isPositiveTrend: false,
       ),
       BillingStatCard(
         title: 'Ce mois-ci',
@@ -159,6 +197,8 @@ class BillingStatisticsSection extends StatelessWidget {
         icon: Icons.calendar_today,
         iconColor: AppColors.cardBlue,
         backgroundColor: AppColors.cardBlue.withOpacity(0.1),
+        trendPercentage: '+12%',
+        isPositiveTrend: true,
       ),
     ];
   }

@@ -83,11 +83,6 @@ class BillingExpensesControls extends StatelessWidget {
           fontWeight: FontWeight.w600,
         ),
       ),
-      style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.black,
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-      ),
     );
   }
 }
@@ -105,7 +100,7 @@ class BillingExpensesTable extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BillingTableWrapper(
-      headers: ['Date', 'Description', 'Montant', 'Actions'],
+      headers: ['Date', 'Description', 'Catégorie', 'Montant', 'Actions'],
       rows: _buildRows(),
     );
   }
@@ -127,6 +122,7 @@ class BillingExpensesTable extends StatelessWidget {
             expense['description'],
             style: AppTextStyles.body1.copyWith(color: AppColors.textPrimary),
           ),
+          _buildCategoryChip(expense['category'] as String? ?? 'Autre'),
           Text(
             '-\$${expense['amount'].toStringAsFixed(0)}',
             style: AppTextStyles.body1.copyWith(
@@ -134,52 +130,77 @@ class BillingExpensesTable extends StatelessWidget {
               color: Colors.red,
             ),
           ),
-          _buildActionButtons(),
+          _buildActionButtons(expense),
         ],
       );
     }).toList();
   }
 
-  Widget _buildActionButtons() {
+  Widget _buildCategoryChip(String category) {
+    return Container(
+      child: Text(
+        category,
+        style: AppTextStyles.body1.copyWith(color: AppColors.textPrimary),
+      ),
+    );
+  }
+
+  Widget _buildActionButtons(Map<String, dynamic> expense) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        OutlinedButton(
-          onPressed: () {
-            // TODO: Edit expense
-          },
-          style: OutlinedButton.styleFrom(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            side: BorderSide(color: AppColors.border),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(6),
+        Container(
+          constraints: const BoxConstraints(
+            minWidth: 70,
+          ), // Reduced minimum width
+          child: OutlinedButton(
+            onPressed: () {
+              // TODO: Edit expense - Open dialog with expense data
+            },
+            style: OutlinedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 8,
+              ), // Reduced padding
+              side: BorderSide(color: AppColors.border),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(6),
+              ),
             ),
-          ),
-          child: Text(
-            'Modifier',
-            style: AppTextStyles.body1.copyWith(
-              color: AppColors.textPrimary,
-              fontSize: 14,
+            child: Text(
+              'Modifier',
+              style: AppTextStyles.body1.copyWith(
+                color: AppColors.textPrimary,
+                fontSize: 13, // Slightly smaller font
+              ),
             ),
           ),
         ),
-        const SizedBox(width: 8),
-        OutlinedButton(
-          onPressed: () {
-            // TODO: Delete expense
-          },
-          style: OutlinedButton.styleFrom(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            side: BorderSide(color: AppColors.border),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(6),
+        const SizedBox(width: 6), // Reduced spacing
+        Container(
+          constraints: const BoxConstraints(
+            minWidth: 80,
+          ), // Reduced minimum width
+          child: OutlinedButton(
+            onPressed: () {
+              // TODO: Delete expense
+            },
+            style: OutlinedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 8,
+              ), // Reduced padding
+              side: BorderSide(color: AppColors.border),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(6),
+              ),
             ),
-          ),
-          child: Text(
-            'Supprimer',
-            style: AppTextStyles.body1.copyWith(
-              color: AppColors.textPrimary,
-              fontSize: 14,
+            child: Text(
+              'Supprimer',
+              style: AppTextStyles.body1.copyWith(
+                color: AppColors.textPrimary,
+                fontSize: 13, // Slightly smaller font
+              ),
             ),
           ),
         ),

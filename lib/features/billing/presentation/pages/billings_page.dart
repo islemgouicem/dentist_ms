@@ -4,7 +4,7 @@ import '../widgets/header.dart';
 import '../widgets/statistics.dart';
 
 import '../widgets/invoices.dart';
-import '../widgets/table_controls.dart';
+
 import '../widgets/services.dart';
 import '../widgets/expenses.dart';
 import '../widgets/payment_history.dart';
@@ -77,7 +77,33 @@ class _BillingsPageState extends State<BillingsPage>
       'treatment': 'Couronne',
     },
   ];
-
+  // Update the _expenses list in _BillingsPageState class
+  final List<Map<String, dynamic>> _expenses = [
+    {
+      'date': '2025-10-12',
+      'description': 'Commande de fournitures dentaires',
+      'category': 'Fournitures dentaires',
+      'amount': 1250.00,
+    },
+    {
+      'date': '2025-10-10',
+      'description': 'Fabrication de couronne',
+      'category': 'Équipement',
+      'amount': 600.00,
+    },
+    {
+      'date': '2025-10-08',
+      'description': 'Entretien de l\'équipement',
+      'category': 'Entretien',
+      'amount': 450.00,
+    },
+    {
+      'date': '2025-10-05',
+      'description': 'Services publics mensuels',
+      'category': 'Services publics',
+      'amount': 320.00,
+    },
+  ];
   final List<Map<String, dynamic>> _services = [
     {'name': 'Nettoyage dentaire', 'price': 150.00},
     {'name': 'Plombage dentaire', 'price': 280.00},
@@ -85,29 +111,6 @@ class _BillingsPageState extends State<BillingsPage>
     {'name': 'Couronne', 'price': 1800.00},
     {'name': 'Extraction dentaire', 'price': 350.00},
     {'name': 'Blanchiment des dents', 'price': 500.00},
-  ];
-
-  final List<Map<String, dynamic>> _expenses = [
-    {
-      'date': '2025-10-12',
-      'description': 'Commande de fournitures dentaires',
-      'amount': 1250.00,
-    },
-    {
-      'date': '2025-10-10',
-      'description': 'Fabrication de couronne',
-      'amount': 600.00,
-    },
-    {
-      'date': '2025-10-08',
-      'description': 'Entretien de l\'équipement',
-      'amount': 450.00,
-    },
-    {
-      'date': '2025-10-05',
-      'description': 'Services publics mensuels',
-      'amount': 320.00,
-    },
   ];
 
   final List<Map<String, dynamic>> _payments = [

@@ -61,29 +61,32 @@ class _AddInvoiceDialogState extends State<AddInvoiceDialog> {
           children: [
             _buildHeader(),
             Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(24),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildInvoiceNumberField(),
-                      const SizedBox(height: 16),
-                      _buildPatientDropdown(),
-                      const SizedBox(height: 16),
-                      _buildDatePicker(),
-                      const SizedBox(height: 16),
-                      _buildTreatmentDropdown(),
-                      const SizedBox(height: 16),
-                      _buildAmountField(),
-                      const SizedBox(height: 16),
-                      _buildPaidAmountField(),
-                      const SizedBox(height: 16),
-                      _buildStatusDropdown(),
-                      const SizedBox(height: 16),
-                      _buildNotesField(),
-                    ],
+              child: Container(
+                color: Colors.white, // Added white background
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(24),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildInvoiceNumberField(),
+                        const SizedBox(height: 16),
+                        _buildPatientDropdown(),
+                        const SizedBox(height: 16),
+                        _buildDatePicker(),
+                        const SizedBox(height: 16),
+                        _buildTreatmentDropdown(),
+                        const SizedBox(height: 16),
+                        _buildAmountField(),
+                        const SizedBox(height: 16),
+                        _buildPaidAmountField(),
+                        const SizedBox(height: 16),
+                        _buildStatusDropdown(),
+                        const SizedBox(height: 16),
+                        _buildNotesField(),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -117,10 +120,7 @@ class _AddInvoiceDialogState extends State<AddInvoiceDialog> {
             child: Icon(Icons.receipt_long, color: AppColors.primary, size: 24),
           ),
           const SizedBox(width: 12),
-          Text(
-            'Nouvelle facture',
-            style: AppTextStyles.headline2,
-          ),
+          Text('Nouvelle facture', style: AppTextStyles.headline2),
           const Spacer(),
           IconButton(
             icon: const Icon(Icons.close),
@@ -274,10 +274,9 @@ class _AddInvoiceDialogState extends State<AddInvoiceDialog> {
         const SizedBox(height: 8),
         TextFormField(
           controller: _amountController,
-          decoration: _inputDecoration('0.00').copyWith(
-            prefixText: '\$ ',
-            prefixStyle: AppTextStyles.body1,
-          ),
+          decoration: _inputDecoration(
+            '0.00',
+          ).copyWith(prefixText: '\$ ', prefixStyle: AppTextStyles.body1),
           keyboardType: TextInputType.number,
           validator: (value) {
             if (value == null || value.isEmpty) {
@@ -307,10 +306,9 @@ class _AddInvoiceDialogState extends State<AddInvoiceDialog> {
         const SizedBox(height: 8),
         TextFormField(
           controller: _paidAmountController,
-          decoration: _inputDecoration('0.00').copyWith(
-            prefixText: '\$ ',
-            prefixStyle: AppTextStyles.body1,
-          ),
+          decoration: _inputDecoration(
+            '0.00',
+          ).copyWith(prefixText: '\$ ', prefixStyle: AppTextStyles.body1),
           keyboardType: TextInputType.number,
           validator: (value) {
             if (value == null || value.isEmpty) {
