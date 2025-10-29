@@ -37,7 +37,7 @@ class _AdaptiveScaffoldState extends State<AdaptiveScaffold> {
       case 4:
         return const SettingsPage();
       default:
-        return const Center(child: Text('Unknown page'));
+        return const Center(child: Text('Page inconnue'));
     }
   }
 
