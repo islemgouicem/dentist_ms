@@ -14,7 +14,6 @@ class SecurityControllers {
   }
 }
 
-// widget to display informations
 Widget security(BuildContext context, double width, double height, SecurityControllers controllers){  
   return Card(
     child: Padding(
@@ -23,77 +22,77 @@ Widget security(BuildContext context, double width, double height, SecurityContr
         mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text("Changer le mot de passe",style: Theme.of(context).textTheme.titleLarge),
+          Text("Changer le mot de passe", style: Theme.of(context).textTheme.titleLarge),
           SizedBox(height: height * 0.03),
-          Row(
-            children: [
-              Expanded(
-                child: Column(
+          
+          // Responsive layout for password fields and image
+          LayoutBuilder(
+            builder: (context, constraints) {
+              if (constraints.maxWidth < 600) {
+                // Vertical layout for small screens
+                return Column(
                   children: [
+                    // Password fields
                     Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Mot de passe actuel',style: AppTextStyles.title),
-                        SizedBox(height: height * 0.01),
-                        SizedBox(
-                          width: width * 0.34,   
-                          height: height * 0.06,
-                          child: TextFormField(
-                            controller: controllers.currentPasswordController,
-                            obscureText: true,
-                            decoration: const InputDecoration(),
-                          ),
-                        ),
+                        _buildPasswordField('Mot de passe actuel', controllers.currentPasswordController, height),
+                        SizedBox(height: height * 0.02),
+                        _buildPasswordField('Nouveau mot de passe', controllers.newPasswordController, height),
+                        SizedBox(height: height * 0.02),
+                        _buildPasswordField('Confirmer le nouveau mot de passe', controllers.confirmPasswordController, height),
                       ],
                     ),
-                    SizedBox(height: height * 0.02),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Nouveau mot de passe', style: AppTextStyles.title),
-                        SizedBox(height: height * 0.01),
-                        SizedBox(
-                          width: width * 0.34,   
-                          height: height * 0.06,
-                          child: TextFormField(
-                            controller: controllers.newPasswordController,
-                            obscureText: true,
-                            decoration: const InputDecoration(),
-                          ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: height * 0.02),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Confirmer le nouveau mot de passe', style: AppTextStyles.title),
-                        SizedBox(height: height * 0.01),
-                        SizedBox(
-                          width: width * 0.34,   
-                          height: height * 0.06,
-                          child: TextFormField(
-                            controller: controllers.confirmPasswordController,
-                            obscureText: true,
-                            decoration: const InputDecoration(),
-                          ),
-                        ),
-                      ],
+                    SizedBox(height: height * 0.03),
+                    // Image below fields on small screens - FIXED
+                    SizedBox(
+                      width:  width * 0.5,
+                      height: height * 0.3,
+                      child: Image.asset("assets/images/security.png"),
                     ),
                   ],
-                ),
-              ),
-              SizedBox(width: width * 0.08),
-              SizedBox(
-                width: width * 0.3, 
-                height: height * 0.4,  
-                child: Image.asset("assets/images/security.jpg", fit: BoxFit.cover)
-              )
-            ],
-          ),           
+                );
+              } else {
+                // Horizontal layout for larger screens - FIXED
+                return IntrinsicHeight( // This ensures both sides have same height
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      // Password fields - take remaining space
+                      Expanded(
+                        flex: 2, // Give more space to form
+                        child: Column(
+                          children: [
+                            _buildPasswordField('Mot de passe actuel', controllers.currentPasswordController, height),
+                            SizedBox(height: height * 0.02),
+                            _buildPasswordField('Nouveau mot de passe', controllers.newPasswordController, height),
+                            SizedBox(height: height * 0.02),
+                            _buildPasswordField('Confirmer le nouveau mot de passe', controllers.confirmPasswordController, height),
+                          ],
+                        ),
+                      ),
+                      //SizedBox(width: width * 0.2),
+                      // Image - fixed width but flexible height
+                      Expanded(
+                        flex: 2,
+                        child: SizedBox(
+                          width:  width * 0.03,
+                          height: height * 0.03,
+                          child: Image.asset("assets/images/security.png"),
+                          ),
+                        ),
+                      
+                    ],
+                  ),
+                );
+              }
+            },
+          ),
+          
           SizedBox(height: height * 0.05),
+          
+          // Save button - always full width
           SizedBox(
-            width: width * 0.9,
+            width: double.infinity,
             child: ElevatedButton(
               onPressed: () {}, 
               child: Text("Sauvegarder", style: AppTextStyles.bodyWhite),
@@ -102,5 +101,24 @@ Widget security(BuildContext context, double width, double height, SecurityContr
         ],
       ),
     )
+  );
+}
+
+// Helper method for password fields
+Widget _buildPasswordField(String label, TextEditingController controller, double height) {
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Text(label, style: AppTextStyles.title),
+      SizedBox(height: height * 0.01),
+      SizedBox(
+        //height: height * 0.06,
+        child: TextFormField(
+          controller: controller,
+          obscureText: true,
+          decoration: const InputDecoration(),
+        ),
+      ),
+    ],
   );
 }
