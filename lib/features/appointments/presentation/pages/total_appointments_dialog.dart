@@ -19,7 +19,7 @@ class TotalAppointmentsDialog extends StatefulWidget {
 class _TotalAppointmentsDialogState extends State<TotalAppointmentsDialog> {
   late List<AppointmentWithStatus> allAppointments;
   String searchQuery = '';
-  String sortBy = 'Newest';
+  String sortBy = 'Plus récent';
   int currentPage = 1;
   final int itemsPerPage = 10;
 
@@ -40,9 +40,9 @@ class _TotalAppointmentsDialogState extends State<TotalAppointmentsDialog> {
   }
 
   void _sortAppointments() {
-    if (sortBy == 'Newest') {
+    if (sortBy == 'Plus récent') {
       allAppointments.sort((a, b) => b.appointment.appointmentDate.compareTo(a.appointment.appointmentDate));
-    } else if (sortBy == 'Oldest') {
+    } else if (sortBy == 'Plus ancien') {
       allAppointments.sort((a, b) => a.appointment.appointmentDate.compareTo(b.appointment.appointmentDate));
     }
   }
@@ -53,21 +53,21 @@ class _TotalAppointmentsDialogState extends State<TotalAppointmentsDialog> {
     final endTime = appointmentTime.add(Duration(minutes: app.duration));
 
     if (endTime.isBefore(now)) {
-      return 'Completed';
+      return 'Terminé';
     } else if (appointmentTime.isBefore(now) && endTime.isAfter(now)) {
-      return 'Inprogress';
+      return 'En cours';
     } else {
-      return 'Upcoming';
+      return 'À venir';
     }
   }
 
   Color _getStatusColor(String status) {
     switch (status) {
-      case 'Completed':
+      case 'Terminé':
         return const Color(0xFF10B981);
-      case 'Inprogress':
+      case 'En cours':
         return const Color(0xFF3B82F6);
-      case 'Upcoming':
+      case 'À venir':
         return const Color(0xFF8B5CF6);
       default:
         return const Color(0xFF6B7280);
@@ -99,9 +99,9 @@ class _TotalAppointmentsDialogState extends State<TotalAppointmentsDialog> {
   @override
   Widget build(BuildContext context) {
     final totalCount = allAppointments.length;
-    final upcoming = allAppointments.where((a) => a.status == 'Upcoming').length;
-    final inProgress = allAppointments.where((a) => a.status == 'Inprogress').length;
-    final completed = allAppointments.where((a) => a.status == 'Completed').length;
+    final upcoming = allAppointments.where((a) => a.status == 'À venir').length;
+    final inProgress = allAppointments.where((a) => a.status == 'En cours').length;
+    final completed = allAppointments.where((a) => a.status == 'Terminé').length;
 
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -110,7 +110,7 @@ class _TotalAppointmentsDialogState extends State<TotalAppointmentsDialog> {
         constraints: const BoxConstraints(maxWidth: 1800, maxHeight: 950),
         child: Column(
           children: [
-            // Header - COMPACT
+            // En-tête - COMPACT
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
               decoration: BoxDecoration(
@@ -122,7 +122,7 @@ class _TotalAppointmentsDialogState extends State<TotalAppointmentsDialog> {
                   Row(
                     children: [
                       const Text(
-                        'Total Appointments',
+                        'Total des rendez-vous',
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -156,23 +156,23 @@ class _TotalAppointmentsDialogState extends State<TotalAppointmentsDialog> {
                 ],
               ),
             ),
-            // Status Pills and Search on same line
+            // Pastilles de statut et barre de recherche sur la même ligne
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
               child: Row(
                 children: [
-                  // Status Pills
+                  // Pastilles de statut
                   Row(
                     children: [
-                      _buildStatusPill('Upcoming', upcoming, const Color(0xFF8B5CF6)),
+                      _buildStatusPill('À venir', upcoming, const Color(0xFF8B5CF6)),
                       const SizedBox(width: 12),
-                      _buildStatusPill('In Progress', inProgress, const Color(0xFF3B82F6)),
+                      _buildStatusPill('En cours', inProgress, const Color(0xFF3B82F6)),
                       const SizedBox(width: 12),
-                      _buildStatusPill('Completed', completed, const Color(0xFF10B981)),
+                      _buildStatusPill('Terminé', completed, const Color(0xFF10B981)),
                     ],
                   ),
                   const SizedBox(width: 20),
-                  // Search Bar - LARGER
+                  // Barre de recherche - PLUS GRANDE
                   Expanded(
                     child: Container(
                       height: 44,
@@ -190,7 +190,7 @@ class _TotalAppointmentsDialogState extends State<TotalAppointmentsDialog> {
                           });
                         },
                         decoration: InputDecoration(
-                          hintText: 'Search by patient name or ID',
+                          hintText: 'Rechercher par nom du patient ou ID',
                           border: InputBorder.none,
                           hintStyle: TextStyle(color: Colors.grey[400], fontSize: 14),
                           prefixIcon: Icon(Icons.search, color: Colors.grey[400], size: 20),
@@ -201,7 +201,7 @@ class _TotalAppointmentsDialogState extends State<TotalAppointmentsDialog> {
                     ),
                   ),
                   const SizedBox(width: 12),
-                  // Sort Button
+                  // Bouton de tri
                   Container(
                     height: 44,
                     padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -215,7 +215,7 @@ class _TotalAppointmentsDialogState extends State<TotalAppointmentsDialog> {
                         Icon(Icons.sort, color: Colors.grey[600], size: 20),
                         const SizedBox(width: 8),
                         const Text(
-                          'Sort:',
+                          'Tri:',
                           style: TextStyle(fontSize: 13, color: Color(0xFF6B7280)),
                         ),
                         const SizedBox(width: 4),
@@ -223,7 +223,7 @@ class _TotalAppointmentsDialogState extends State<TotalAppointmentsDialog> {
                           value: sortBy,
                           underline: const SizedBox(),
                           style: const TextStyle(color: Color(0xFF111827), fontSize: 13, fontWeight: FontWeight.w600),
-                          items: ['Newest', 'Oldest'].map((String value) {
+                          items: ['Plus récent', 'Plus ancien'].map((String value) {
                             return DropdownMenuItem<String>(
                               value: value,
                               child: Text(value),
@@ -245,7 +245,7 @@ class _TotalAppointmentsDialogState extends State<TotalAppointmentsDialog> {
               ),
             ),
             Divider(color: Colors.grey[200], height: 1),
-            // Table - FULL SPACE
+            // Tableau - PLEIN ESPACE
             Expanded(
               child: SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
@@ -264,7 +264,7 @@ class _TotalAppointmentsDialogState extends State<TotalAppointmentsDialog> {
                   Row(
                     children: [
                       const Text(
-                        'Showing',
+                        'Affichage',
                         style: TextStyle(fontSize: 12, color: Color(0xFF6B7280)),
                       ),
                       const SizedBox(width: 6),
@@ -290,7 +290,7 @@ class _TotalAppointmentsDialogState extends State<TotalAppointmentsDialog> {
                       ),
                       const SizedBox(width: 6),
                       const Text(
-                        'Results',
+                        'résultats',
                         style: TextStyle(fontSize: 12, color: Color(0xFF6B7280)),
                       ),
                     ],
@@ -422,19 +422,19 @@ class _TotalAppointmentsDialogState extends State<TotalAppointmentsDialog> {
       },
       defaultVerticalAlignment: TableCellVerticalAlignment.middle,
       children: [
-        // Header
+        // En-tête
         TableRow(
           decoration: BoxDecoration(color: Colors.grey[100]),
           children: [
             _buildTableHeader(''),
-            _buildTableHeader('Patient ID'),
-            _buildTableHeader('Patient Name'),
-            _buildTableHeader('Appointment Date'),
-            _buildTableHeader('Status'),
+            _buildTableHeader('ID Patient'),
+            _buildTableHeader('Nom du patient'),
+            _buildTableHeader('Date du rendez-vous'),
+            _buildTableHeader('Statut'),
             _buildTableHeader(''),
           ],
         ),
-        // Rows
+        // Lignes
         ...paginatedAppointments.asMap().entries.map((entry) {
           final item = entry.value;
           final app = item.appointment;
@@ -442,7 +442,7 @@ class _TotalAppointmentsDialogState extends State<TotalAppointmentsDialog> {
           final appointmentTime = AppointmentUtils.getAppointmentDateTime(app);
           final endTime = appointmentTime.add(Duration(minutes: app.duration));
           final dateTimeString =
-              '${DateFormat('dd MMM yyyy, hh:mm a').format(appointmentTime)} to ${DateFormat('hh:mm a').format(endTime)}';
+              '${DateFormat('dd MMM yyyy, hh:mm a').format(appointmentTime)} à ${DateFormat('hh:mm a').format(endTime)}';
 
           return TableRow(
             decoration: BoxDecoration(
@@ -518,8 +518,8 @@ class _TotalAppointmentsDialogState extends State<TotalAppointmentsDialog> {
                   child: PopupMenuButton(
                     itemBuilder: (BuildContext context) {
                       return [
-                        const PopupMenuItem(child: Text('Edit')),
-                        const PopupMenuItem(child: Text('Delete')),
+                        const PopupMenuItem(child: Text('Modifier')),
+                        const PopupMenuItem(child: Text('Supprimer')),
                       ];
                     },
                     child: Icon(Icons.more_vert, color: Colors.grey[400], size: 16),

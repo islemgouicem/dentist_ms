@@ -7,45 +7,45 @@ class AppointmentService {
       '2025-10-31': [
         Appointment(
           id: '1',
-          patientName: 'John Smith',
-          procedure: 'Root Canal',
+          patientName: 'Jean Dubois',
+          procedure: 'Traitement de canal',
           time: '08:30',
           duration: 60,
           status: 'confirmed',
-          cardColor: AppointmentUtils.getTreatmentColor('Root Canal'),
+          cardColor: AppointmentUtils.getTreatmentColor('Traitement de canal'),
           appointmentDate: DateTime(2025, 10, 31),
           totalCost: 500.0,
         ),
         Appointment(
           id: '2',
           patientName: 'Emma Wilson',
-          procedure: 'Teeth Cleaning',
+          procedure: 'Nettoyage des dents',
           time: '10:00',
           duration: 45,
           status: 'pending',
-          cardColor: AppointmentUtils.getTreatmentColor('Teeth Cleaning'),
+          cardColor: AppointmentUtils.getTreatmentColor('Nettoyage des dents'),
           appointmentDate: DateTime(2025, 10, 31),
           totalCost: 150.0,
         ),
         Appointment(
           id: '3',
-          patientName: 'Michael Brown',
-          procedure: 'Dental Implant',
+          patientName: 'Michel Brown',
+          procedure: 'Implant dentaire',
           time: '12:00',
           duration: 90,
           status: 'confirmed',
-          cardColor: AppointmentUtils.getTreatmentColor('Dental Implant'),
+          cardColor: AppointmentUtils.getTreatmentColor('Implant dentaire'),
           appointmentDate: DateTime(2025, 10, 31),
           totalCost: 2000.0,
         ),
         Appointment(
           id: '4',
           patientName: 'Sarah Davis',
-          procedure: 'Crown Installation',
+          procedure: 'Installation de couronne',
           time: '14:00',
           duration: 60,
           status: 'confirmed',
-          cardColor: AppointmentUtils.getTreatmentColor('Crown Installation'),
+          cardColor: AppointmentUtils.getTreatmentColor('Installation de couronne'),
           appointmentDate: DateTime(2025, 10, 31),
           totalCost: 800.0,
         ),
@@ -54,22 +54,22 @@ class AppointmentService {
         Appointment(
           id: '5',
           patientName: 'Robert Johnson',
-          procedure: 'Cavity Filling',
+          procedure: 'Obturation de carie',
           time: '09:00',
           duration: 30,
           status: 'confirmed',
-          cardColor: AppointmentUtils.getTreatmentColor('Cavity Filling'),
+          cardColor: AppointmentUtils.getTreatmentColor('Obturation de carie'),
           appointmentDate: DateTime(2025, 11, 1),
           totalCost: 200.0,
         ),
         Appointment(
           id: '6',
           patientName: 'Lisa Anderson',
-          procedure: 'Whitening',
+          procedure: 'Blanchiment',
           time: '11:00',
           duration: 45,
           status: 'confirmed',
-          cardColor: AppointmentUtils.getTreatmentColor('Whitening'),
+          cardColor: AppointmentUtils.getTreatmentColor('Blanchiment'),
           appointmentDate: DateTime(2025, 11, 1),
           totalCost: 300.0,
         ),
@@ -78,11 +78,11 @@ class AppointmentService {
         Appointment(
           id: '7',
           patientName: 'David Taylor',
-          procedure: 'Orthodontics',
+          procedure: 'Orthodontie',
           time: '13:00',
           duration: 120,
           status: 'confirmed',
-          cardColor: AppointmentUtils.getTreatmentColor('Orthodontics'),
+          cardColor: AppointmentUtils.getTreatmentColor('Orthodontie'),
           appointmentDate: DateTime(2025, 11, 2),
           totalCost: 1500.0,
         ),
@@ -91,22 +91,22 @@ class AppointmentService {
         Appointment(
           id: '8',
           patientName: 'Jennifer Lee',
-          procedure: 'Check-up',
+          procedure: 'Bilan dentaire',
           time: '09:30',
           duration: 30,
           status: 'pending',
-          cardColor: AppointmentUtils.getTreatmentColor('Check-up'),
+          cardColor: AppointmentUtils.getTreatmentColor('Bilan dentaire'),
           appointmentDate: DateTime(2025, 11, 3),
           totalCost: 100.0,
         ),
         Appointment(
           id: '9',
           patientName: 'Mark Wilson',
-          procedure: 'Bridge Installation',
+          procedure: 'Installation de bridge',
           time: '15:00',
           duration: 75,
           status: 'confirmed',
-          cardColor: AppointmentUtils.getTreatmentColor('Bridge Installation'),
+          cardColor: AppointmentUtils.getTreatmentColor('Installation de bridge'),
           appointmentDate: DateTime(2025, 11, 3),
           totalCost: 1200.0,
         ),
@@ -126,11 +126,11 @@ class AppointmentService {
         Appointment(
           id: '11',
           patientName: 'James Garcia',
-          procedure: 'Scaling',
+          procedure: 'Détartrage',
           time: '10:30',
           duration: 90,
           status: 'confirmed',
-          cardColor: AppointmentUtils.getTreatmentColor('Scaling'),
+          cardColor: AppointmentUtils.getTreatmentColor('Détartrage'),
           appointmentDate: DateTime(2025, 11, 4),
           totalCost: 250.0,
         ),
@@ -162,9 +162,9 @@ class AppointmentService {
   }
 
   List<Appointment> getFilteredAppointments(DateTime selectedDay, String viewMode) {
-    if (viewMode == 'Day') {
+    if (viewMode == 'Jour') {
       return getAppointmentsForDay(selectedDay);
-    } else if (viewMode == 'Week') {
+    } else if (viewMode == 'Semaine') {
       final monday = selectedDay.subtract(Duration(days: selectedDay.weekday - 1));
       List<Appointment> weekApps = [];
       for (int i = 0; i < 7; i++) {
@@ -189,10 +189,10 @@ class AppointmentService {
   }
 
   List<String> getPatientsList() {
-    return ['John Smith', 'Emma Wilson', 'Michael Brown', 'Sarah Davis', 'Robert Johnson', 'Lisa Anderson'];
+    return ['Jean Dubois', 'Emma Wilson', 'Michel Brown', 'Sarah Davis', 'Robert Johnson', 'Lisa Anderson'];
   }
 
   List<String> getTreatmentTypes() {
-    return ['Cleaning', 'Filling', 'Root Canal', 'Crown', 'Extraction', 'Consultation', 'Whitening', 'Orthodontics'];
+    return ['Nettoyage', 'Obturation', 'Traitement de canal', 'Couronne', 'Extraction', 'Consultation', 'Blanchiment', 'Orthodontie'];
   }
 }

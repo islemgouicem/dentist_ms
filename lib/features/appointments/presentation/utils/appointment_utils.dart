@@ -7,17 +7,17 @@ class AppointmentUtils {
   static const Color cancelledColor = Color(0xFFEF4444);
 
   static const Map<String, Color> treatmentColors = {
-    'Root Canal': Color(0xFF2563EB),
-    'Teeth Cleaning': Color(0xFF10B981),
-    'Dental Implant': Color(0xFF7C3AED),
-    'Crown Installation': Color(0xFFA855F7),
-    'Cavity Filling': Color(0xFF06B6D4),
-    'Whitening': Color(0xFFFB923C),
-    'Orthodontics': Color(0xFFEC4899),
-    'Check-up': Color(0xFF14B8A6),
-    'Bridge Installation': Color(0xFFF59E0B),
+    'Traitement de canal': Color(0xFF2563EB),
+    'Nettoyage des dents': Color(0xFF10B981),
+    'Implant dentaire': Color(0xFF7C3AED),
+    'Installation de couronne': Color(0xFFA855F7),
+    'Obturation de carie': Color(0xFF06B6D4),
+    'Blanchiment': Color(0xFFFB923C),
+    'Orthodontie': Color(0xFFEC4899),
+    'Bilan dentaire': Color(0xFF14B8A6),
+    'Installation de bridge': Color(0xFFF59E0B),
     'Extraction': Color(0xFFEF4444),
-    'Scaling': Color(0xFF8B5CF6),
+    'Détartrage': Color(0xFF8B5CF6),
     'Consultation': Color(0xFF6366F1),
   };
 

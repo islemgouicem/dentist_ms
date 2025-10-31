@@ -16,7 +16,7 @@ class AppointmentPage extends StatefulWidget {
 class _AppointmentPageState extends State<AppointmentPage> {
   DateTime selectedDay = DateTime(2025, 10, 31);
   DateTime calendarMonth = DateTime(2025, 10, 1);
-  String viewMode = 'Day';
+  String viewMode = 'Jour';
   String? hoveredAppointmentId;
 
   final AppointmentService _service = AppointmentService();
@@ -96,7 +96,7 @@ class _AppointmentPageState extends State<AppointmentPage> {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            '${appointmentsToShow.length} appointments',
+                            '${appointmentsToShow.length} rendez-vous',
                             style: TextStyle(
                               fontSize: 12,
                               color: Colors.grey[600],
@@ -124,7 +124,7 @@ class _AppointmentPageState extends State<AppointmentPage> {
                               ),
                               const SizedBox(height: 12),
                               Text(
-                                'No appointments found',
+                                'Aucun rendez-vous trouvé',
                                 style: TextStyle(
                                   fontSize: 14,
                                   color: Colors.grey[600],
@@ -265,31 +265,31 @@ class _AppointmentPageState extends State<AppointmentPage> {
   }
 
   String _getDisplayDateForPopup(Appointment appointment) {
-    if (viewMode == 'Day') {
+    if (viewMode == 'Jour') {
       return appointment.time;
-    } else if (viewMode == 'Week') {
-      return '${DateFormat('EEE, MMM d').format(appointment.appointmentDate)} at ${appointment.time}';
+    } else if (viewMode == 'Semaine') {
+      return '${DateFormat('EEE, MMM d').format(appointment.appointmentDate)} à ${appointment.time}';
     } else {
-      return '${DateFormat('MMM d, yyyy').format(appointment.appointmentDate)} at ${appointment.time}';
+      return '${DateFormat('MMM d, yyyy').format(appointment.appointmentDate)} à ${appointment.time}';
     }
   }
 
   String _getFilterTitle(String filterType) {
     switch (filterType) {
       case 'all':
-        return 'All Appointments';
+        return 'Tous les rendez-vous';
       case 'confirmed':
-        return 'Confirmed Appointments';
+        return 'Rendez-vous confirmés';
       case 'pending':
-        return 'Pending Appointments';
+        return 'Rendez-vous en attente';
       case 'cancelled':
-        return 'Cancelled Appointments';
+        return 'Rendez-vous annulés';
       default:
-        return 'Appointments';
+        return 'Rendez-vous';
     }
   }
 
-  void showScheduleAppointmentDialog() {
+void showScheduleAppointmentDialog() {
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -308,26 +308,30 @@ class _AppointmentPageState extends State<AppointmentPage> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'Schedule New Appointment',
-                              style: TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xFF111827),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'Planifier un nouveau rendez-vous',
+                                style: TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF111827),
+                                ),
                               ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              'Schedule a new appointment for a patient with date, time, and treatment details.',
-                              style: TextStyle(
-                                fontSize: 13,
-                                color: Colors.grey[600],
+                              const SizedBox(height: 4),
+                              Text(
+                                'Planifiez un nouveau rendez-vous pour un patient avec la date, l\'heure et les détails du traitement.',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: Colors.grey[600],
+                                ),
+                                maxLines: 3,
+                                overflow: TextOverflow.ellipsis,
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                         IconButton(
                           icon: const Icon(Icons.close),
@@ -357,7 +361,7 @@ class _AppointmentPageState extends State<AppointmentPage> {
                               const SizedBox(height: 8),
                               DropdownButtonFormField<String>(
                                 decoration: InputDecoration(
-                                  hintText: 'Select patient',
+                                  hintText: 'Sélectionner un patient',
                                   border: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(8),
                                     borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
@@ -387,7 +391,7 @@ class _AppointmentPageState extends State<AppointmentPage> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               const Text(
-                                'Treatment Type',
+                                'Type de traitement',
                                 style: TextStyle(
                                   fontSize: 13,
                                   fontWeight: FontWeight.w600,
@@ -397,7 +401,7 @@ class _AppointmentPageState extends State<AppointmentPage> {
                               const SizedBox(height: 8),
                               DropdownButtonFormField<String>(
                                 decoration: InputDecoration(
-                                  hintText: 'Select type',
+                                  hintText: 'Sélectionner un type',
                                   border: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(8),
                                     borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
@@ -454,7 +458,7 @@ class _AppointmentPageState extends State<AppointmentPage> {
                               const SizedBox(height: 8),
                               TextField(
                                 decoration: InputDecoration(
-                                  hintText: 'mm/dd/yyyy',
+                                  hintText: 'jj/mm/aaaa',
                                   border: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(8),
                                     borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
@@ -488,7 +492,7 @@ class _AppointmentPageState extends State<AppointmentPage> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               const Text(
-                                'Time',
+                                'Heure',
                                 style: TextStyle(
                                   fontSize: 13,
                                   fontWeight: FontWeight.w600,
@@ -498,7 +502,7 @@ class _AppointmentPageState extends State<AppointmentPage> {
                               const SizedBox(height: 8),
                               DropdownButtonFormField<String>(
                                 decoration: InputDecoration(
-                                  hintText: 'Select time',
+                                  hintText: 'Sélectionner l\'heure',
                                   border: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(8),
                                     borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
@@ -530,7 +534,7 @@ class _AppointmentPageState extends State<AppointmentPage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const Text(
-                          'Notes',
+                          'Remarques',
                           style: TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.w600,
@@ -541,7 +545,7 @@ class _AppointmentPageState extends State<AppointmentPage> {
                         TextField(
                           maxLines: 4,
                           decoration: InputDecoration(
-                            hintText: 'Add any special notes or instructions',
+                            hintText: 'Ajouter des remarques ou des instructions spéciales',
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(8),
                               borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
@@ -569,7 +573,7 @@ class _AppointmentPageState extends State<AppointmentPage> {
                             ),
                           ),
                           child: const Text(
-                            'Cancel',
+                            'Annuler',
                             style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w600,
@@ -583,7 +587,7 @@ class _AppointmentPageState extends State<AppointmentPage> {
                             Navigator.pop(context);
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
-                                content: Text('Appointment scheduled successfully!'),
+                                content: Text('Rendez-vous planifié avec succès!'),
                                 backgroundColor: Color(0xFF10B981),
                               ),
                             );
@@ -600,7 +604,7 @@ class _AppointmentPageState extends State<AppointmentPage> {
                             ),
                           ),
                           child: const Text(
-                            'Schedule Appointment',
+                            'Planifier le rendez-vous',
                             style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w600,
@@ -618,7 +622,6 @@ class _AppointmentPageState extends State<AppointmentPage> {
       },
     );
   }
-
   void showTotalAppointmentsDialog() {
     showDialog(
       context: context,
@@ -700,7 +703,7 @@ class _AppointmentPageState extends State<AppointmentPage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const Text(
-                          'Appointment Calendar',
+                          'Calendrier des rendez-vous',
                           style: TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
@@ -709,7 +712,7 @@ class _AppointmentPageState extends State<AppointmentPage> {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          'Manage and schedule appointments',
+                          'Gérer et planifier les rendez-vous',
                           style: TextStyle(
                             fontSize: 12,
                             color: Colors.grey[600],
@@ -720,11 +723,11 @@ class _AppointmentPageState extends State<AppointmentPage> {
                     Row(
                       children: [
                         if (showDayWeekMonthButtons) ...[
-                          buildModeButton('Day', viewMode == 'Day', 12),
+                          buildModeButton('Jour', viewMode == 'Jour', 12),
                           const SizedBox(width: 8),
-                          buildModeButton('Week', viewMode == 'Week', 12),
+                          buildModeButton('Semaine', viewMode == 'Semaine', 12),
                           const SizedBox(width: 8),
-                          buildModeButton('Month', viewMode == 'Month', 12),
+                          buildModeButton('Mois', viewMode == 'Mois', 12),
                           const SizedBox(width: 8),
                         ],
                         if (showTotalAppointmentsButton)
@@ -757,7 +760,7 @@ class _AppointmentPageState extends State<AppointmentPage> {
                           ElevatedButton.icon(
                             onPressed: showScheduleAppointmentDialog,
                             icon: const Icon(Icons.add, size: 16),
-                            label: const Text('New'),
+                            label: const Text('Nouveau'),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: const Color(0xFF3B82F6),
                               foregroundColor: Colors.white,
@@ -789,7 +792,7 @@ class _AppointmentPageState extends State<AppointmentPage> {
                   runSpacing: 12,
                   children: [
                     buildResponsiveStatCard(
-                      'Today\'s Appointments',
+                      'Rendez-vous d\'aujourd\'hui',
                       '${filteredAppointments.length}',
                       const Color(0xFF3B82F6),
                       'all',
@@ -797,7 +800,7 @@ class _AppointmentPageState extends State<AppointmentPage> {
                       screenWidth,
                     ),
                     buildResponsiveStatCard(
-                      'Confirmed',
+                      'Confirmés',
                       '$confirmed',
                       AppointmentUtils.confirmedColor,
                       'confirmed',
@@ -805,7 +808,7 @@ class _AppointmentPageState extends State<AppointmentPage> {
                       screenWidth,
                     ),
                     buildResponsiveStatCard(
-                      'Pending',
+                      'En attente',
                       '$pending',
                       AppointmentUtils.pendingColor,
                       'pending',
@@ -813,7 +816,7 @@ class _AppointmentPageState extends State<AppointmentPage> {
                       screenWidth,
                     ),
                     buildResponsiveStatCard(
-                      'Cancelled',
+                      'Annulés',
                       '$cancelled',
                       AppointmentUtils.cancelledColor,
                       'cancelled',
@@ -856,7 +859,7 @@ class _AppointmentPageState extends State<AppointmentPage> {
                   ),
                 ),
                 Text(
-                  '${appointments.length} appointments scheduled',
+                  '${appointments.length} rendez-vous planifiés',
                   style: TextStyle(
                     fontSize: 12,
                     color: Colors.grey[600],
@@ -872,7 +875,7 @@ class _AppointmentPageState extends State<AppointmentPage> {
                               Icon(Icons.calendar_today, size: 48, color: Colors.grey[400]),
                               const SizedBox(height: 16),
                               Text(
-                                'No appointments scheduled',
+                                'Aucun rendez-vous planifié',
                                 style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                               ),
                             ],
@@ -915,7 +918,7 @@ class _AppointmentPageState extends State<AppointmentPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Text(
-                        'Appointment Calendar',
+                        'Calendrier des rendez-vous',
                         style: TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
@@ -924,7 +927,7 @@ class _AppointmentPageState extends State<AppointmentPage> {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        'Manage and schedule appointments',
+                        'Gérer et planifier les rendez-vous',
                         style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                       ),
                     ],
@@ -932,18 +935,18 @@ class _AppointmentPageState extends State<AppointmentPage> {
                   Row(
                     children: [
                       if (showDayWeekMonthButtons) ...[
-                        buildModeButton('Day', viewMode == 'Day', 14),
+                        buildModeButton('Jour', viewMode == 'Jour', 14),
                         const SizedBox(width: 8),
-                        buildModeButton('Week', viewMode == 'Week', 14),
+                        buildModeButton('Semaine', viewMode == 'Semaine', 14),
                         const SizedBox(width: 8),
-                        buildModeButton('Month', viewMode == 'Month', 14),
+                        buildModeButton('Mois', viewMode == 'Mois', 14),
                         const SizedBox(width: 16),
                       ],
                       if (showTotalAppointmentsButton)
                         ElevatedButton.icon(
                           onPressed: showTotalAppointmentsDialog,
                           icon: const Icon(Icons.list),
-                          label: const Text('Total Appointments'),
+                          label: const Text('Total des rendez-vous'),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFF3B82F6),
                             foregroundColor: Colors.white,
@@ -968,7 +971,7 @@ class _AppointmentPageState extends State<AppointmentPage> {
                         ElevatedButton.icon(
                           onPressed: showScheduleAppointmentDialog,
                           icon: const Icon(Icons.add),
-                          label: const Text('New Appointment'),
+                          label: const Text('Nouveau rendez-vous'),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFF3B82F6),
                             foregroundColor: Colors.white,
@@ -996,7 +999,7 @@ class _AppointmentPageState extends State<AppointmentPage> {
               Row(
                 children: [
                   buildStatCard(
-                    'Today\'s Appointments',
+                    'Rendez-vous d\'aujourd\'hui',
                     '${filteredAppointments.length}',
                     const Color(0xFF3B82F6),
                     'all',
@@ -1004,7 +1007,7 @@ class _AppointmentPageState extends State<AppointmentPage> {
                   ),
                   const SizedBox(width: 16),
                   buildStatCard(
-                    'Confirmed',
+                    'Confirmés',
                     '$confirmed',
                     AppointmentUtils.confirmedColor,
                     'confirmed',
@@ -1012,7 +1015,7 @@ class _AppointmentPageState extends State<AppointmentPage> {
                   ),
                   const SizedBox(width: 16),
                   buildStatCard(
-                    'Pending',
+                    'En attente',
                     '$pending',
                     AppointmentUtils.pendingColor,
                     'pending',
@@ -1020,7 +1023,7 @@ class _AppointmentPageState extends State<AppointmentPage> {
                   ),
                   const SizedBox(width: 16),
                   buildStatCard(
-                    'Cancelled',
+                    'Annulés',
                     '$cancelled',
                     AppointmentUtils.cancelledColor,
                     'cancelled',
@@ -1065,7 +1068,7 @@ class _AppointmentPageState extends State<AppointmentPage> {
                         ),
                       ),
                       Text(
-                        '${appointments.length} appointments scheduled',
+                        '${appointments.length} rendez-vous planifiés',
                         style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                       ),
                       const SizedBox(height: 20),
@@ -1078,7 +1081,7 @@ class _AppointmentPageState extends State<AppointmentPage> {
                                     Icon(Icons.calendar_today, size: 48, color: Colors.grey[400]),
                                     const SizedBox(height: 16),
                                     Text(
-                                      'No appointments scheduled',
+                                      'Aucun rendez-vous planifié',
                                       style: TextStyle(fontSize: 16, color: Colors.grey[600]),
                                     ),
                                   ],
@@ -1235,7 +1238,7 @@ class _AppointmentPageState extends State<AppointmentPage> {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         const Text(
-          'Calendar',
+          'Calendrier',
           style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF111827)),
         ),
         Row(
@@ -1324,7 +1327,7 @@ class _AppointmentPageState extends State<AppointmentPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
-          'Quick Actions',
+          'Actions rapides',
           style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF111827)),
         ),
         const SizedBox(height: 12),
@@ -1333,7 +1336,7 @@ class _AppointmentPageState extends State<AppointmentPage> {
           child: OutlinedButton.icon(
             onPressed: () {},
             icon: const Icon(Icons.search, size: 18),
-            label: const Text('Find Slot'),
+            label: const Text('Trouver un créneau'),
             style: OutlinedButton.styleFrom(
               foregroundColor: Colors.grey[700],
               side: BorderSide(color: Colors.grey[300]!),
@@ -1346,7 +1349,7 @@ class _AppointmentPageState extends State<AppointmentPage> {
           child: OutlinedButton.icon(
             onPressed: () {},
             icon: const Icon(Icons.filter_list, size: 18),
-            label: const Text('Filter'),
+            label: const Text('Filtrer'),
             style: OutlinedButton.styleFrom(
               foregroundColor: Colors.grey[700],
               side: BorderSide(color: Colors.grey[300]!),

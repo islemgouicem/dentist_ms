@@ -18,7 +18,7 @@ class AppointmentDetailPage extends StatefulWidget {
 
 class _AppointmentDetailPageState extends State<AppointmentDetailPage> {
   late Appointment appointment;
-  String selectedTab = 'Overview';
+  String selectedTab = 'Aperçu';
   bool isAppointmentStarted = false;
   bool isAppointmentCompleted = false;
   DateTime? appointmentStartTime;
@@ -56,7 +56,7 @@ class _AppointmentDetailPageState extends State<AppointmentDetailPage> {
     });
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
-        content: Text('✓ Appointment started!'),
+        content: Text('✓ Rendez-vous démarré!'),
         backgroundColor: Color(0xFF10B981),
         duration: Duration(seconds: 2),
       ),
@@ -79,7 +79,7 @@ class _AppointmentDetailPageState extends State<AppointmentDetailPage> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   const Text(
-                    'Complete Appointment',
+                    'Terminer le rendez-vous',
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
@@ -120,7 +120,7 @@ class _AppointmentDetailPageState extends State<AppointmentDetailPage> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const Text(
-                            'Ready to mark as complete?',
+                            'Prêt à marquer comme terminé?',
                             style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w600,
@@ -129,7 +129,7 @@ class _AppointmentDetailPageState extends State<AppointmentDetailPage> {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            'Appointment duration: ${_getAppointmentDuration()}',
+                            'Durée du rendez-vous: ${_getAppointmentDuration()}',
                             style: TextStyle(
                               fontSize: 12,
                               color: Colors.grey[600],
@@ -142,7 +142,7 @@ class _AppointmentDetailPageState extends State<AppointmentDetailPage> {
                 ),
               ),
               const SizedBox(height: 24),
-              // Appointment Summary
+              // Résumé du rendez-vous
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
@@ -154,7 +154,7 @@ class _AppointmentDetailPageState extends State<AppointmentDetailPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Appointment Summary',
+                      'Résumé du rendez-vous',
                       style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
@@ -164,17 +164,17 @@ class _AppointmentDetailPageState extends State<AppointmentDetailPage> {
                     const SizedBox(height: 12),
                     _buildSummaryRow('Patient', appointment.patientName),
                     const Divider(height: 16),
-                    _buildSummaryRow('Procedure', appointment.procedure),
+                    _buildSummaryRow('Intervention', appointment.procedure),
                     const Divider(height: 16),
-                    _buildSummaryRow('Status', 'Completed'),
+                    _buildSummaryRow('Statut', 'Terminé'),
                     const Divider(height: 16),
                     _buildSummaryRow(
-                      'Start Time',
+                      'Heure de début',
                       DateFormat('HH:mm').format(appointmentStartTime ?? DateTime.now()),
                     ),
                     const Divider(height: 16),
                     _buildSummaryRow(
-                      'End Time',
+                      'Heure de fin',
                       DateFormat('HH:mm').format(DateTime.now()),
                     ),
                   ],
@@ -193,7 +193,7 @@ class _AppointmentDetailPageState extends State<AppointmentDetailPage> {
                       ),
                     ),
                     child: const Text(
-                      'Cancel',
+                      'Annuler',
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
@@ -212,14 +212,14 @@ class _AppointmentDetailPageState extends State<AppointmentDetailPage> {
                       Navigator.pop(context);
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
-                          content: Text('✓ Appointment completed successfully!'),
+                          content: Text('✓ Rendez-vous terminé avec succès!'),
                           backgroundColor: Color(0xFF10B981),
                           duration: Duration(seconds: 3),
                         ),
                       );
                     },
                     icon: const Icon(Icons.check_circle),
-                    label: const Text('Mark Complete'),
+                    label: const Text('Marquer comme terminé'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF10B981),
                       foregroundColor: Colors.white,
@@ -282,7 +282,7 @@ class _AppointmentDetailPageState extends State<AppointmentDetailPage> {
           },
         ),
         title: const Text(
-          'Appointment Details',
+          'Détails du rendez-vous',
           style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.bold,
@@ -301,10 +301,10 @@ class _AppointmentDetailPageState extends State<AppointmentDetailPage> {
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
-                  (isAppointmentCompleted ? 'completed' : appointment.status)
+                  (isAppointmentCompleted ? 'terminé' : appointment.status)
                       .substring(0, 1)
                       .toUpperCase() +
-                      (isAppointmentCompleted ? 'completed' : appointment.status)
+                      (isAppointmentCompleted ? 'terminé' : appointment.status)
                           .substring(1),
                   style: TextStyle(
                     color: _getStatusColor(
@@ -321,7 +321,7 @@ class _AppointmentDetailPageState extends State<AppointmentDetailPage> {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            // Enhanced Header Card
+            // En-tête amélioré
             Container(
               padding: const EdgeInsets.all(24),
               margin: const EdgeInsets.all(16),
@@ -400,7 +400,7 @@ class _AppointmentDetailPageState extends State<AppointmentDetailPage> {
                     ],
                   ),
                   const SizedBox(height: 20),
-                  // Date Time Duration Row
+                  // Ligne Date Heure Durée
                   Row(
                     children: [
                       Expanded(
@@ -414,7 +414,7 @@ class _AppointmentDetailPageState extends State<AppointmentDetailPage> {
                       Expanded(
                         child: _buildInfoChip(
                           Icons.access_time,
-                          'Time',
+                          'Heure',
                           appointment.time,
                         ),
                       ),
@@ -422,7 +422,7 @@ class _AppointmentDetailPageState extends State<AppointmentDetailPage> {
                       Expanded(
                         child: _buildInfoChip(
                           Icons.schedule,
-                          'Duration',
+                          'Durée',
                           _getAppointmentDuration(),
                         ),
                       ),
@@ -431,7 +431,7 @@ class _AppointmentDetailPageState extends State<AppointmentDetailPage> {
                 ],
               ),
             ),
-            // Tab Navigation
+            // Navigation par onglets
             Container(
               color: Colors.white,
               padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -439,14 +439,14 @@ class _AppointmentDetailPageState extends State<AppointmentDetailPage> {
                 scrollDirection: Axis.horizontal,
                 child: Row(
                   children: [
-                    _buildTabButton('Overview', selectedTab == 'Overview'),
-                    _buildTabButton('During Appointment', selectedTab == 'During Appointment'),
-                    _buildTabButton('Payment', selectedTab == 'Payment'),
+                    _buildTabButton('Aperçu', selectedTab == 'Aperçu'),
+                    _buildTabButton('Pendant le rendez-vous', selectedTab == 'Pendant le rendez-vous'),
+                    _buildTabButton('Paiement', selectedTab == 'Paiement'),
                   ],
                 ),
               ),
             ),
-            // Tab Content
+            // Contenu des onglets
             Container(
               color: Colors.white,
               margin: const EdgeInsets.only(top: 1),
@@ -461,20 +461,20 @@ class _AppointmentDetailPageState extends State<AppointmentDetailPage> {
               onPressed: () {},
               backgroundColor: const Color(0xFF10B981),
               icon: const Icon(Icons.check_circle),
-              label: const Text('Completed'),
+              label: const Text('Terminé'),
             )
           : isAppointmentStarted
               ? FloatingActionButton.extended(
                   onPressed: _completeAppointment,
                   backgroundColor: const Color(0xFF10B981),
                   icon: const Icon(Icons.check_circle),
-                  label: const Text('Complete Appointment'),
+                  label: const Text('Terminer le rendez-vous'),
                 )
               : FloatingActionButton.extended(
                   onPressed: _startAppointment,
                   backgroundColor: const Color(0xFF3B82F6),
                   icon: const Icon(Icons.play_arrow),
-                  label: const Text('Start Appointment'),
+                  label: const Text('Démarrer le rendez-vous'),
                 ),
     );
   }
@@ -550,11 +550,11 @@ class _AppointmentDetailPageState extends State<AppointmentDetailPage> {
 
   Widget _buildTabContent() {
     switch (selectedTab) {
-      case 'Overview':
+      case 'Aperçu':
         return _buildOverviewTab();
-      case 'During Appointment':
+      case 'Pendant le rendez-vous':
         return _buildDuringAppointmentTab();
-      case 'Payment':
+      case 'Paiement':
         return _buildPaymentTab();
       default:
         return const SizedBox();
@@ -566,7 +566,7 @@ class _AppointmentDetailPageState extends State<AppointmentDetailPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
-          'Appointment Notes',
+          'Remarques du rendez-vous',
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.bold,
@@ -582,7 +582,7 @@ class _AppointmentDetailPageState extends State<AppointmentDetailPage> {
             border: Border.all(color: const Color(0xFFE5E7EB)),
           ),
           child: Text(
-            appointment.notes.isEmpty ? 'No notes added' : appointment.notes,
+            appointment.notes.isEmpty ? 'Aucune note ajoutée' : appointment.notes,
             style: TextStyle(
               fontSize: 13,
               color: appointment.notes.isEmpty ? Colors.grey[500] : Colors.grey[700],
@@ -592,7 +592,7 @@ class _AppointmentDetailPageState extends State<AppointmentDetailPage> {
         ),
         const SizedBox(height: 24),
         const Text(
-          'Quick Info',
+          'Informations rapides',
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.bold,
@@ -609,11 +609,11 @@ class _AppointmentDetailPageState extends State<AppointmentDetailPage> {
           ),
           child: Column(
             children: [
-              _buildInfoRow('Appointment ID', '#APT${appointment.id.padLeft(4, '0')}'),
+              _buildInfoRow('ID du rendez-vous', '#APT${appointment.id.padLeft(4, '0')}'),
               const Divider(height: 20),
-              _buildInfoRow('Status', isAppointmentCompleted ? 'COMPLETED' : appointment.status.toUpperCase()),
+              _buildInfoRow('Statut', isAppointmentCompleted ? 'TERMINÉ' : appointment.status.toUpperCase()),
               const Divider(height: 20),
-              _buildInfoRow('Treatment Type', appointment.procedure),
+              _buildInfoRow('Type de traitement', appointment.procedure),
             ],
           ),
         ),
@@ -661,10 +661,10 @@ class _AppointmentDetailPageState extends State<AppointmentDetailPage> {
               Expanded(
                 child: Text(
                   isAppointmentCompleted
-                      ? 'Appointment completed'
+                      ? 'Rendez-vous terminé'
                       : isAppointmentStarted
-                          ? 'Appointment is in progress'
-                          : 'Start the appointment to add records',
+                          ? 'Le rendez-vous est en cours'
+                          : 'Démarrez le rendez-vous pour ajouter des enregistrements',
                   style: TextStyle(
                     fontSize: 13,
                     color: isAppointmentCompleted
@@ -681,7 +681,7 @@ class _AppointmentDetailPageState extends State<AppointmentDetailPage> {
         ),
         const SizedBox(height: 24),
         const Text(
-          'Audio Recording',
+          'Enregistrement audio',
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.bold,
@@ -716,7 +716,7 @@ class _AppointmentDetailPageState extends State<AppointmentDetailPage> {
               ),
               const SizedBox(height: 16),
               Text(
-                'Record Patient Remarks',
+                'Enregistrer les remarques du patient',
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
@@ -725,7 +725,7 @@ class _AppointmentDetailPageState extends State<AppointmentDetailPage> {
               ),
               const SizedBox(height: 8),
               Text(
-                'Record voice notes about the appointment',
+                'Enregistrez des notes vocales sur le rendez-vous',
                 style: TextStyle(
                   fontSize: 12,
                   color: Colors.grey[500],
@@ -738,14 +738,14 @@ class _AppointmentDetailPageState extends State<AppointmentDetailPage> {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
                             content: Text(
-                              'Recording feature coming soon',
+                              'Fonction d\'enregistrement à venir',
                             ),
                           ),
                         );
                       }
                     : null,
                 icon: const Icon(Icons.fiber_manual_record),
-                label: const Text('Start Recording'),
+                label: const Text('Démarrer l\'enregistrement'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF3B82F6),
                   disabledBackgroundColor: Colors.grey[300],
@@ -756,7 +756,7 @@ class _AppointmentDetailPageState extends State<AppointmentDetailPage> {
         ),
         const SizedBox(height: 24),
         const Text(
-          'Clinical Notes',
+          'Notes cliniques',
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.bold,
@@ -768,7 +768,7 @@ class _AppointmentDetailPageState extends State<AppointmentDetailPage> {
           enabled: isAppointmentStarted && !isAppointmentCompleted,
           maxLines: 5,
           decoration: InputDecoration(
-            hintText: 'Add clinical notes during the appointment...',
+            hintText: 'Ajouter des notes cliniques pendant le rendez-vous...',
             hintStyle: TextStyle(color: Colors.grey[400]),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
@@ -793,7 +793,7 @@ class _AppointmentDetailPageState extends State<AppointmentDetailPage> {
         ),
         const SizedBox(height: 24),
         const Text(
-          'Upload Files',
+          'Charger des fichiers',
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.bold,
@@ -823,7 +823,7 @@ class _AppointmentDetailPageState extends State<AppointmentDetailPage> {
               ),
               const SizedBox(height: 12),
               Text(
-                'Drag and drop files here',
+                'Glissez et déposez les fichiers ici',
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
@@ -832,7 +832,7 @@ class _AppointmentDetailPageState extends State<AppointmentDetailPage> {
               ),
               const SizedBox(height: 8),
               Text(
-                'or',
+                'ou',
                 style: TextStyle(
                   fontSize: 12,
                   color: Colors.grey[500],
@@ -845,14 +845,14 @@ class _AppointmentDetailPageState extends State<AppointmentDetailPage> {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
                             content: Text(
-                              'File upload feature coming soon',
+                              'Fonction de téléchargement de fichiers à venir',
                             ),
                           ),
                         );
                       }
                     : null,
                 icon: const Icon(Icons.add),
-                label: const Text('Choose Files'),
+                label: const Text('Choisir des fichiers'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF3B82F6),
                   disabledBackgroundColor: Colors.grey[300],
@@ -873,12 +873,12 @@ class _AppointmentDetailPageState extends State<AppointmentDetailPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Payment Summary Cards
+        // Cartes de résumé de paiement
         Row(
           children: [
             Expanded(
               child: _buildPaymentCard(
-                'Total Cost',
+                'Coût total',
                 '\$${appointment.totalCost.toStringAsFixed(2)}',
                 const Color(0xFF3B82F6),
               ),
@@ -886,7 +886,7 @@ class _AppointmentDetailPageState extends State<AppointmentDetailPage> {
             const SizedBox(width: 12),
             Expanded(
               child: _buildPaymentCard(
-                'Amount Paid',
+                'Montant payé',
                 '\$${totalPaid.toStringAsFixed(2)}',
                 const Color(0xFF10B981),
               ),
@@ -894,7 +894,7 @@ class _AppointmentDetailPageState extends State<AppointmentDetailPage> {
             const SizedBox(width: 12),
             Expanded(
               child: _buildPaymentCard(
-                'Balance Due',
+                'Solde dû',
                 '\$${remainingBalance.toStringAsFixed(2)}',
                 remainingBalance <= 0 ? const Color(0xFF10B981) : const Color(0xFFEF4444),
               ),
@@ -902,7 +902,7 @@ class _AppointmentDetailPageState extends State<AppointmentDetailPage> {
           ],
         ),
         const SizedBox(height: 24),
-        // Progress Bar
+        // Barre de progression
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -910,7 +910,7 @@ class _AppointmentDetailPageState extends State<AppointmentDetailPage> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 const Text(
-                  'Payment Progress',
+                  'Progression du paiement',
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
@@ -944,12 +944,12 @@ class _AppointmentDetailPageState extends State<AppointmentDetailPage> {
           ],
         ),
         const SizedBox(height: 24),
-        // Add Payment Button
+        // Bouton Ajouter un paiement
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             const Text(
-              'Payment History',
+              'Historique des paiements',
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
@@ -959,7 +959,7 @@ class _AppointmentDetailPageState extends State<AppointmentDetailPage> {
             ElevatedButton.icon(
               onPressed: () => _showAddPaymentDialog(),
               icon: const Icon(Icons.add, size: 18),
-              label: const Text('Add Payment'),
+              label: const Text('Ajouter un paiement'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF10B981),
                 foregroundColor: Colors.white,
@@ -988,7 +988,7 @@ class _AppointmentDetailPageState extends State<AppointmentDetailPage> {
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    'No payments recorded',
+                    'Aucun paiement enregistré',
                     style: TextStyle(
                       fontSize: 14,
                       color: Colors.grey[600],
@@ -1165,7 +1165,7 @@ class _AppointmentDetailPageState extends State<AppointmentDetailPage> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       const Text(
-                        'Edit Appointment',
+                        'Modifier le rendez-vous',
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
@@ -1186,12 +1186,12 @@ class _AppointmentDetailPageState extends State<AppointmentDetailPage> {
                     ],
                   ),
                   const SizedBox(height: 24),
-                  _buildDialogTextField('Patient Name', patientNameController),
+                  _buildDialogTextField('Nom du patient', patientNameController),
                   const SizedBox(height: 16),
-                  _buildDialogTextField('Procedure', procedureController),
+                  _buildDialogTextField('Intervention', procedureController),
                   const SizedBox(height: 16),
                   const Text(
-                    'Status',
+                    'Statut',
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
@@ -1240,7 +1240,7 @@ class _AppointmentDetailPageState extends State<AppointmentDetailPage> {
                     controller: notesController,
                     maxLines: 4,
                     decoration: InputDecoration(
-                      hintText: 'Add notes...',
+                      hintText: 'Ajouter des notes...',
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
                         borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
@@ -1266,7 +1266,7 @@ class _AppointmentDetailPageState extends State<AppointmentDetailPage> {
                           ),
                         ),
                         child: const Text(
-                          'Cancel',
+                          'Annuler',
                           style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
@@ -1296,7 +1296,7 @@ class _AppointmentDetailPageState extends State<AppointmentDetailPage> {
                           Navigator.pop(context);
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
-                              content: Text('Appointment updated!'),
+                              content: Text('Rendez-vous mis à jour!'),
                               backgroundColor: Color(0xFF10B981),
                             ),
                           );
@@ -1313,7 +1313,7 @@ class _AppointmentDetailPageState extends State<AppointmentDetailPage> {
                           ),
                         ),
                         child: const Text(
-                          'Save Changes',
+                          'Enregistrer les modifications',
                           style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
@@ -1351,7 +1351,7 @@ class _AppointmentDetailPageState extends State<AppointmentDetailPage> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     const Text(
-                      'Add Payment',
+                      'Ajouter un paiement',
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
@@ -1373,7 +1373,7 @@ class _AppointmentDetailPageState extends State<AppointmentDetailPage> {
                 ),
                 const SizedBox(height: 24),
                 const Text(
-                  'Amount',
+                  'Montant',
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
@@ -1385,7 +1385,7 @@ class _AppointmentDetailPageState extends State<AppointmentDetailPage> {
                   controller: amountController,
                   keyboardType: TextInputType.number,
                   decoration: InputDecoration(
-                    hintText: 'Enter amount',
+                    hintText: 'Entrer le montant',
                     prefixText: '\$ ',
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
@@ -1402,7 +1402,7 @@ class _AppointmentDetailPageState extends State<AppointmentDetailPage> {
                 ),
                 const SizedBox(height: 16),
                 const Text(
-                  'Payment Method',
+                  'Méthode de paiement',
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
@@ -1443,7 +1443,7 @@ class _AppointmentDetailPageState extends State<AppointmentDetailPage> {
                   children: [
                     TextButton(
                       onPressed: () => Navigator.pop(context),
-                      child: const Text('Cancel'),
+                      child: const Text('Annuler'),
                     ),
                     const SizedBox(width: 12),
                     ElevatedButton(
@@ -1451,7 +1451,7 @@ class _AppointmentDetailPageState extends State<AppointmentDetailPage> {
                         if (amountController.text.isEmpty) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
-                              content: Text('Please enter an amount'),
+                              content: Text('Veuillez entrer un montant'),
                               backgroundColor: Color(0xFFEF4444),
                             ),
                           );
@@ -1475,7 +1475,7 @@ class _AppointmentDetailPageState extends State<AppointmentDetailPage> {
                         Navigator.pop(context);
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
-                            content: Text('Payment added successfully!'),
+                            content: Text('Paiement ajouté avec succès!'),
                             backgroundColor: Color(0xFF10B981),
                           ),
                         );
@@ -1484,7 +1484,7 @@ class _AppointmentDetailPageState extends State<AppointmentDetailPage> {
                         backgroundColor: const Color(0xFF10B981),
                         foregroundColor: Colors.white,
                       ),
-                      child: const Text('Add Payment'),
+                      child: const Text('Ajouter un paiement'),
                     ),
                   ],
                 ),
