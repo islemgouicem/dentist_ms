@@ -111,9 +111,24 @@ class _AppNavbarState extends State<AppNavbar> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+
+    double expandedWidth;
+    if (screenWidth >= 1400) {
+      expandedWidth = 260;
+    } else if (screenWidth >= 1200) {
+      expandedWidth = 230;
+    } else if (screenWidth >= 1000) {
+      expandedWidth = 200;
+    } else if (screenWidth >= 800) {
+      expandedWidth = 180;
+    } else {
+      expandedWidth = 150;
+    }
+
     return AnimatedContainer(
       duration: const Duration(milliseconds: 250),
-      width: _isCollapsed ? 80 : 250,
+      width: _isCollapsed ? 80 : expandedWidth,
       decoration: AppColors.navBarBackground,
       child: Column(
         crossAxisAlignment: _isCollapsed
@@ -146,25 +161,31 @@ class _AppNavbarState extends State<AppNavbar> {
                         ),
                       ),
                       SizedBox(width: 8),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: const [
-                          Text(
-                            'Clinique Dentaire',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: const [
+                            Text(
+                              'Dental clinic',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                                overflow: TextOverflow.ellipsis,
+                              ),
                             ),
-                          ),
-                          SizedBox(height: 4),
-                          Text(
-                            'Gestion de clinique',
-                            style: TextStyle(color: Colors.grey, fontSize: 12),
-                          ),
-                        ],
+                            SizedBox(height: 4),
+                            Text(
+                              'Clinic Management',
+                              style: TextStyle(
+                                color: Colors.grey,
+                                fontSize: 12,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                        ),
                       ),
-                      Spacer(),
                     ],
 
                     Container(
