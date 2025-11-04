@@ -84,7 +84,7 @@ class _LoginPageState extends State<LoginPage>
                 Icon(Icons.face_retouching_natural, size: 18),
                 SizedBox(width: 6),
                 Text(
-                  'Facial Recognition',
+                  'Reconnaissance faciale',
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
               ],
@@ -97,7 +97,7 @@ class _LoginPageState extends State<LoginPage>
                 Icon(Icons.lock_outline, size: 18),
                 SizedBox(width: 6),
                 Text(
-                  'Password',
+                  'Mot de passe',
                   style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
                 ),
               ],
@@ -114,7 +114,7 @@ class _LoginPageState extends State<LoginPage>
       child: Column(
         children: [
           const Text(
-            'Secure Login',
+            'Connexion sécurisée',
             style: TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold,
@@ -123,7 +123,7 @@ class _LoginPageState extends State<LoginPage>
           ),
           const SizedBox(height: 8),
           Text(
-            'Use facial recognition for instant, secure access',
+            'Utilisez la reconnaissance faciale pour un accès instantané et sécurisé',
             style: TextStyle(fontSize: 14, color: Colors.grey[700]),
             textAlign: TextAlign.center,
           ),
@@ -159,7 +159,7 @@ class _LoginPageState extends State<LoginPage>
           ),
           const SizedBox(height: 24),
           _buildGradientButton(
-            text: 'Start Facial Recognition',
+            text: 'Démarrer la reconnaissance faciale',
             onPressed: () {
               Navigator.pushReplacementNamed(context, AppRoutes.dashboardShell);
             },
@@ -175,7 +175,7 @@ class _LoginPageState extends State<LoginPage>
       child: Column(
         children: [
           const Text(
-            'Welcome Back',
+            'Content de te revoir',
             style: TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold,
@@ -184,7 +184,7 @@ class _LoginPageState extends State<LoginPage>
           ),
           const SizedBox(height: 8),
           Text(
-            'Enter your credentials to access your account',
+            'Saisissez vos identifiants pour accéder à votre compte',
             style: TextStyle(fontSize: 14, color: Colors.grey[700]),
             textAlign: TextAlign.center,
           ),
@@ -196,7 +196,7 @@ class _LoginPageState extends State<LoginPage>
           _buildRememberForgot(),
           const SizedBox(height: 20),
           _buildGradientButton(
-            text: 'Sign In',
+            text: 'Se connecter',
             onPressed: () {
               // After successful login, open the main shell (dashboard index 0)
               Navigator.pushReplacementNamed(context, AppRoutes.dashboardShell);
@@ -228,7 +228,7 @@ class _LoginPageState extends State<LoginPage>
       obscureText: true,
       decoration: InputDecoration(
         prefixIcon: const Icon(Icons.lock_outline),
-        hintText: 'Password',
+        hintText: 'Mot de passe',
         filled: true,
         fillColor: const Color(0xFFF4F4F6),
         contentPadding: const EdgeInsets.symmetric(vertical: 14),
@@ -252,13 +252,13 @@ class _LoginPageState extends State<LoginPage>
                 setState(() => rememberMe = val ?? false);
               },
             ),
-            const Text('Remember me'),
+            const Text('Souviens-toi de moi'),
           ],
         ),
         TextButton(
           onPressed: () {},
           child: const Text(
-            'Forgot password?',
+            'Mot de passe oublié?',
             style: TextStyle(color: Colors.blue, fontSize: 14),
           ),
         ),

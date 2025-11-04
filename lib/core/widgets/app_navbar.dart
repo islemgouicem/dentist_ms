@@ -27,19 +27,19 @@ class _AppNavbarState extends State<AppNavbar> {
   bool _isCollapsed = false;
 
   late final List<Map<String, String>> navItems = [
-    {"title": "Dashboard", "icon": "assets/icons/dashboard.svg"},
+    {"title": "Tableau de bord", "icon": "assets/icons/dashboard.svg"},
     {
-      "title": "Patients",
+      "title": "Patientes",
       "icon": "assets/icons/patients.svg",
       "counter": widget.patientsN.toString(),
     },
     {
-      "title": "Appointments",
+      "title": "Rendez-vous",
       "icon": "assets/icons/appointments.svg",
       "counter": widget.appointmentsN.toString(),
     },
     {
-      "title": "Billing",
+      "title": "Facturation",
       "icon": "assets/icons/billing.svg",
       "counter": widget.billingsN.toString(),
     },
@@ -235,7 +235,7 @@ class _AppNavbarState extends State<AppNavbar> {
                   ),
                   const Spacer(),
                   // Settings at bottom
-                  _buildNavItem("Settings", "assets/icons/settings.svg", 4),
+                  _buildNavItem("Paramètres", "assets/icons/settings.svg", 4),
                 ],
               ),
             ),
