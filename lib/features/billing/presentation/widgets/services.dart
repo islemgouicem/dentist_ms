@@ -71,8 +71,7 @@ class BillingServiceCatalogControls extends StatelessWidget {
 
         if (result != null) {
           print('New service added: $result');
-          onAddService(); // Call the callback to refresh the list
-          // TODO: Add service to list and update backend
+          onAddService();
         }
       },
       icon: const Icon(Icons.add, size: 20),
@@ -139,9 +138,7 @@ class BillingServiceCatalogTable extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         OutlinedButton(
-          onPressed: () {
-            // TODO: Edit service
-          },
+          onPressed: () {},
           style: OutlinedButton.styleFrom(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             side: BorderSide(color: AppColors.border),
@@ -159,9 +156,7 @@ class BillingServiceCatalogTable extends StatelessWidget {
         ),
         const SizedBox(width: 8),
         OutlinedButton(
-          onPressed: () {
-            // TODO: Delete service
-          },
+          onPressed: () {},
           style: OutlinedButton.styleFrom(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             side: BorderSide(color: AppColors.border),

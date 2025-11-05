@@ -12,7 +12,7 @@ class BillingStatusBadge extends StatelessWidget {
     final colors = _getStatusColors();
 
     return Container(
-      width: 100, // Fixed width for all status badges
+      width: 100,
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
         color: colors['background'],
@@ -20,7 +20,7 @@ class BillingStatusBadge extends StatelessWidget {
       ),
       child: Text(
         _getStatusText(),
-        textAlign: TextAlign.center, // Center the text
+        textAlign: TextAlign.center,
         style: AppTextStyles.smallLabel.copyWith(
           color: colors['text'],
           fontWeight: FontWeight.w600,

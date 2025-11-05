@@ -71,8 +71,7 @@ class BillingExpensesControls extends StatelessWidget {
 
         if (result != null) {
           print('New expense added: $result');
-          onAddExpense(); // Call the callback to refresh the list
-          // TODO: Add expense to list and update backend
+          onAddExpense();
         }
       },
       icon: const Icon(Icons.add, size: 20),
@@ -150,18 +149,11 @@ class BillingExpensesTable extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         Container(
-          constraints: const BoxConstraints(
-            minWidth: 70,
-          ), // Reduced minimum width
+          constraints: const BoxConstraints(minWidth: 70),
           child: OutlinedButton(
-            onPressed: () {
-              // TODO: Edit expense - Open dialog with expense data
-            },
+            onPressed: () {},
             style: OutlinedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 12,
-                vertical: 8,
-              ), // Reduced padding
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               side: BorderSide(color: AppColors.border),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(6),
@@ -171,25 +163,18 @@ class BillingExpensesTable extends StatelessWidget {
               'Modifier',
               style: AppTextStyles.body1.copyWith(
                 color: AppColors.textPrimary,
-                fontSize: 13, // Slightly smaller font
+                fontSize: 13,
               ),
             ),
           ),
         ),
-        const SizedBox(width: 6), // Reduced spacing
+        const SizedBox(width: 6),
         Container(
-          constraints: const BoxConstraints(
-            minWidth: 80,
-          ), // Reduced minimum width
+          constraints: const BoxConstraints(minWidth: 80),
           child: OutlinedButton(
-            onPressed: () {
-              // TODO: Delete expense
-            },
+            onPressed: () {},
             style: OutlinedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 12,
-                vertical: 8,
-              ), // Reduced padding
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               side: BorderSide(color: AppColors.border),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(6),
@@ -199,7 +184,7 @@ class BillingExpensesTable extends StatelessWidget {
               'Supprimer',
               style: AppTextStyles.body1.copyWith(
                 color: AppColors.textPrimary,
-                fontSize: 13, // Slightly smaller font
+                fontSize: 13,
               ),
             ),
           ),
