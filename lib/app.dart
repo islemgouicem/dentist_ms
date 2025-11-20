@@ -12,7 +12,7 @@ class DentistApp extends StatelessWidget {
       title: 'Système de gestion des dentistes',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
-      initialRoute: AppRoutes.login,
+      initialRoute: AppRoutes.dashboardShell,
       onGenerateRoute: AppRouter.generateRoute,
     );
   }
