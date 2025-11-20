@@ -382,8 +382,6 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
       };
 
       Navigator.of(context).pop(expense);
-
-      // TODO: Send data to backend
     }
   }
 }

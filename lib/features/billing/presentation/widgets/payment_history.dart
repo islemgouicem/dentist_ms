@@ -58,9 +58,7 @@ class BillingPaymentHistoryControls extends StatelessWidget {
 
   Widget _buildDateRangeButton() {
     return OutlinedButton.icon(
-      onPressed: () {
-        // TODO: Show date range picker
-      },
+      onPressed: () {},
       icon: Icon(Icons.calendar_today, size: 18, color: AppColors.textPrimary),
       label: Text(
         'Plage de dates',
@@ -125,7 +123,7 @@ class BillingPaymentHistoryTable extends StatelessWidget {
             ),
           ),
           Container(
-            width: 100, // Fixed width for consistent badge size
+            width: 100,
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
               color: Colors.green.withOpacity(0.1),

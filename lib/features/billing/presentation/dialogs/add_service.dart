@@ -51,7 +51,7 @@ class _AddServiceDialogState extends State<AddServiceDialog> {
             _buildHeader(isEditing),
             Expanded(
               child: Container(
-                color: Colors.white, // Add this to make the background white
+                color: Colors.white,
                 child: SingleChildScrollView(
                   padding: const EdgeInsets.all(24),
                   child: Form(
@@ -288,8 +288,6 @@ class _AddServiceDialogState extends State<AddServiceDialog> {
       };
 
       Navigator.of(context).pop(service);
-
-      // TODO: Send data to backend
     }
   }
 }

@@ -472,8 +472,6 @@ class _AddInvoiceDialogState extends State<AddInvoiceDialog> {
 
       // Return the invoice data to the calling page
       Navigator.of(context).pop(invoice);
-
-      // TODO: Send data to backend
     }
   }
 }

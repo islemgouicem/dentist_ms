@@ -37,7 +37,6 @@ class BillingHeader extends StatelessWidget {
     if (result != null) {
       // Handle the returned invoice data
       print('New invoice created: $result');
-      // TODO: Add invoice to list and update backend
     }
   }
 }
