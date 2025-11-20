@@ -66,3 +66,16 @@ class AppColors {
 
   static Color? get textFieldBackground => null;
 }
+const kBg = Color(0xFFF4F7FB);
+const kSurface = Colors.white;
+const kTextPrimary = Color(0xFF0D1B2A);
+const kTextSecondary = Color(0xFF5A6B85);
+const kBorder = Color(0xFFE7ECF3);
+
+// KPI card colors
+const kRevenueColor = Color(0xFF2363FF);
+const kPatientsColor = Color(0xFF0FB56E);
+const kAppointmentsColor = Color(0xFF8E3DFF);
+const kAvgRevColor = Color(0xFFFF8A00);
+
+const kNeutralIcon = Colors.white;
