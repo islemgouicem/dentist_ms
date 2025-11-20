@@ -4,7 +4,7 @@ class AppColors {
   // Primary brand colors
   static const Color primary = Color(0xFF1976D2);
   static const Color sidebar = Color(0xFF0E1A2B);
-  static const Color background = Color(0xFFF5F7FA); // page background
+  static const Color background = Color(0xFFF1F5F9); // page background
   static const Color white = Colors.white;
 
   // Accent cards
@@ -14,7 +14,7 @@ class AppColors {
   static const Color cardOrange = Color(0xFFE65100); // Appointments
   static const Color cardPink = Color(0xFFCC25B0); // transactions
   static const Color cardgrey = Color(0xFFF3F3F5); // input
-  
+
   // Text
   static const Color textPrimary = Color(0xFF1A1F36);
   static const Color textSecondary = Color(0xFFCAD5E2);
@@ -32,14 +32,15 @@ class AppColors {
   // Borders & dividers
   static const Color border = Color(0xFFE0E6ED);
   static const Color shadow = Color(0x1A000000); // subtle shadow
+  static const LinearGradient primaryGradient = LinearGradient(
+    begin: Alignment.centerLeft,
+    end: Alignment.centerRight,
+    colors: [Color(0xFF2B7FFF), Color(0xFF00B8DB)],
+  );
 
   static final BoxDecoration selectedPage = BoxDecoration(
     borderRadius: BorderRadius.circular(14),
-    gradient: const LinearGradient(
-      begin: Alignment.centerLeft,
-      end: Alignment.centerRight,
-      colors: [Color(0xFF2B7FFF), Color(0xFF00B8DB)],
-    ),
+    gradient: primaryGradient,
     boxShadow: const [
       BoxShadow(
         color: Color.fromRGBO(43, 127, 255, 0.3), // rgba(43,127,255,0.3)
