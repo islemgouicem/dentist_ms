@@ -1,384 +1,430 @@
-import 'package:dentist_ms/core/constants/app_colors.dart';
+import 'package:dentist_ms/features/patients/data/models/patient_model.dart';
+import 'package:dentist_ms/features/patients/data/repositories/patient_repository.dart';
+import 'package:dentist_ms/features/patients/presentation/bloc/bloc.dart';
+import 'package:dentist_ms/features/patients/presentation/widgets/patient_form_dialog.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart';
 
-class PatientsPage extends StatefulWidget {
+class PatientsPage extends StatelessWidget {
   const PatientsPage({super.key});
 
   @override
-  State<PatientsPage> createState() => _PatientsPageState();
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (context) => PatientBloc()..add(const LoadPatients()),
+      child: const _PatientsPageContent(),
+    );
+  }
 }
 
-class _PatientsPageState extends State<PatientsPage> {
-  var totalPatients = 2847;
-  var activePatients = 2145;
-  var newPatients = 127;
-  var balance = 12340;
+class _PatientsPageContent extends StatefulWidget {
+  const _PatientsPageContent();
+
+  @override
+  State<_PatientsPageContent> createState() => _PatientsPageContentState();
+}
+
+class _PatientsPageContentState extends State<_PatientsPageContent> {
+  final TextEditingController _searchController = TextEditingController();
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _showAddPatientDialog() {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => PatientFormDialog(
+        onSave: (patient) {
+          context.read<PatientBloc>().add(AddPatient(patient));
+        },
+      ),
+    );
+  }
+
+  void _showEditPatientDialog(Patient patient) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => PatientFormDialog(
+        patient: patient,
+        onSave: (updatedPatient) {
+          context.read<PatientBloc>().add(UpdatePatient(updatedPatient));
+        },
+      ),
+    );
+  }
+
+  void _deletePatient(Patient patient) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Delete Patient'),
+        content: Text(
+            'Are you sure you want to delete ${patient.fullName}? This action cannot be undone.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+            ),
+            onPressed: () {
+              Navigator.of(dialogContext).pop();
+              if (patient.id != null) {
+                context.read<PatientBloc>().add(DeletePatient(patient.id!));
+              }
+            },
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.grey[50],
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            // Header Section
-            Row(
+    return BlocConsumer<PatientBloc, PatientState>(
+      listener: (context, state) {
+        if (state is PatientOperationSuccess) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(state.message),
+              backgroundColor: Colors.green,
+            ),
+          );
+        } else if (state is PatientError) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(state.message),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      },
+      builder: (context, state) {
+        // Extract data from state
+        List<Patient> patients = [];
+        PatientStats? stats;
+        bool isLoading = state is PatientLoading;
+
+        if (state is PatientLoaded) {
+          patients = state.patients;
+          stats = state.stats;
+        } else if (state is PatientOperationInProgress) {
+          patients = state.patients;
+          stats = state.stats;
+          isLoading = true;
+        } else if (state is PatientOperationSuccess) {
+          patients = state.patients;
+          stats = state.stats;
+        } else if (state is PatientError) {
+          patients = state.patients;
+          stats = state.stats;
+        }
+
+        return Scaffold(
+          backgroundColor: Colors.grey[50],
+          body: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
               children: [
-                // Text Section
+                // Header Section
+                _buildHeader(),
+                const SizedBox(height: 24),
+
+                // Stats Cards
+                _buildStatsRow(stats),
+                const SizedBox(height: 24),
+
+                // Search and Filter Row
+                _buildSearchRow(),
+                const SizedBox(height: 24),
+
+                // Patients List
                 Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        "Patient Management",
-                        style: TextStyle(
-                          fontSize: 26,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.grey[800],
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        "Manage and view all patient records",
-                        style: TextStyle(fontSize: 14, color: Colors.grey[600]),
-                      ),
-                    ],
-                  ),
-                ),
-
-                // Add Patient Button
-                LayoutBuilder(
-                  builder: (context, constraints) {
-                    if (constraints.maxWidth < 600) {
-                      // Small screen - button goes below
-                      return Container(
-                        width: double.infinity,
-                        margin: const EdgeInsets.only(top: 16),
-                        child: Container(
-                          decoration: AppColors.selectedPage,
-                          child: ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.transparent,
-                              shadowColor: Colors.transparent,
-                              padding: const EdgeInsets.symmetric(vertical: 12),
-                            ),
-                            onPressed: () {},
-                            child: const Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(Icons.add, color: Colors.white),
-                                SizedBox(width: 8),
-                                Text(
-                                  "Add New Patient",
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      );
-                    } else {
-                      // Normal screen
-                      return Container(
-                        decoration: BoxDecoration(
-                          gradient: const LinearGradient(
-                            colors: [Color(0xFF2196F3), Color(0xFF00BCD4)],
-                            begin: Alignment.centerLeft,
-                            end: Alignment.centerRight,
-                          ),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.transparent,
-                            shadowColor: Colors.transparent,
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 20,
-                              vertical: 12,
-                            ),
-                          ),
-                          onPressed: () {},
-                          child: const Row(
-                            children: [
-                              Icon(Icons.add, color: Colors.white),
-                              SizedBox(width: 8),
-                              Text(
-                                "Add New Patient",
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
-                    }
-                  },
+                  child: isLoading && patients.isEmpty
+                      ? const Center(child: CircularProgressIndicator())
+                      : _buildPatientsTable(patients),
                 ),
               ],
             ),
-            const SizedBox(height: 24),
+          ),
+        );
+      },
+    );
+  }
 
-            // Stats Cards
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  Widget _buildHeader() {
+    return Row(
+      children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                "Patient Management",
+                style: TextStyle(
+                  fontSize: 26,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.grey[800],
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                "Manage and view all patient records",
+                style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+              ),
+            ],
+          ),
+        ),
+        Container(
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [Color(0xFF2196F3), Color(0xFF00BCD4)],
+              begin: Alignment.centerLeft,
+              end: Alignment.centerRight,
+            ),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.transparent,
+              shadowColor: Colors.transparent,
+              padding: const EdgeInsets.symmetric(
+                horizontal: 20,
+                vertical: 12,
+              ),
+            ),
+            onPressed: _showAddPatientDialog,
+            child: const Row(
               children: [
-                _buildStatCard(
-                  'Total Patients',
-                  totalPatients,
-                  Icons.people_outline,
-                  Colors.blue,
-                ),
-                _buildStatCard(
-                  'Active Patients',
-                  activePatients,
-                  Icons.monitor_heart_outlined,
-                  Colors.green,
-                ),
-                _buildStatCard(
-                  'New This Month',
-                  newPatients,
-                  Icons.person_add_outlined,
-                  Colors.orange,
-                ),
-                _buildStatCard(
-                  'Pending Balance',
-                  balance,
-                  Icons.attach_money_outlined,
-                  Colors.purple,
-                  isMoney: true,
+                Icon(Icons.add, color: Colors.white),
+                SizedBox(width: 8),
+                Text(
+                  "Add New Patient",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
               ],
             ),
-            const SizedBox(height: 24),
+          ),
+        ),
+      ],
+    );
+  }
 
-            // Search and Filter Row
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.grey.withOpacity(0.1),
-                    blurRadius: 10,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
+  Widget _buildStatsRow(PatientStats? stats) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        _buildStatCard(
+          'Total Patients',
+          stats?.totalPatients ?? 0,
+          Icons.people_outline,
+          Colors.blue,
+        ),
+        _buildStatCard(
+          'Active Patients',
+          stats?.activePatients ?? 0,
+          Icons.monitor_heart_outlined,
+          Colors.green,
+        ),
+        _buildStatCard(
+          'New This Month',
+          stats?.newThisMonth ?? 0,
+          Icons.person_add_outlined,
+          Colors.orange,
+        ),
+        _buildStatCard(
+          'Pending Balance',
+          stats?.pendingBalance.toInt() ?? 0,
+          Icons.attach_money_outlined,
+          Colors.purple,
+          isMoney: true,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSearchRow() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withValues(alpha: 0.1),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: TextField(
+              controller: _searchController,
+              decoration: InputDecoration(
+                hintText: 'Search patients by name, ID, or email...',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide.none,
+                ),
+                filled: true,
+                fillColor: Colors.grey[100],
+                prefixIcon: const Icon(Icons.search),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
               ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      decoration: InputDecoration(
-                        hintText: 'Search patients by name, ID, or email...',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide.none,
-                        ),
-                        filled: true,
-                        fillColor: Colors.grey[100],
-                        prefixIcon: const Icon(Icons.search),
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 12,
-                        ),
-                      ),
-                      onChanged: (value) {
-                        // TODO: Add filtering logic
-                      },
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  OutlinedButton.icon(
-                    icon: const Icon(Icons.filter_alt_outlined),
-                    onPressed: () {},
-                    label: const Text("Filters"),
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 12,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  OutlinedButton.icon(
-                    icon: const Icon(Icons.arrow_upward),
-                    onPressed: () {},
-                    label: const Text("Export"),
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 12,
-                      ),
-                    ),
-                  ),
-                ],
+              onChanged: (value) {
+                context.read<PatientBloc>().add(SearchPatients(value));
+              },
+            ),
+          ),
+          const SizedBox(width: 16),
+          OutlinedButton.icon(
+            icon: const Icon(Icons.refresh),
+            onPressed: () {
+              _searchController.clear();
+              context.read<PatientBloc>().add(const LoadPatients());
+            },
+            label: const Text("Refresh"),
+            style: OutlinedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 12,
               ),
             ),
-            const SizedBox(height: 24),
+          ),
+        ],
+      ),
+    );
+  }
 
-            // Patients List
-            Expanded(
-              child: Container(
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.grey.withOpacity(0.1),
-                      blurRadius: 10,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
+  Widget _buildPatientsTable(List<Patient> patients) {
+    if (patients.isEmpty) {
+      return Container(
+        width: double.infinity,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withValues(alpha: 0.1),
+              blurRadius: 10,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.people_outline, size: 64, color: Colors.grey[400]),
+              const SizedBox(height: 16),
+              Text(
+                'No patients found',
+                style: TextStyle(
+                  fontSize: 18,
+                  color: Colors.grey[600],
+                  fontWeight: FontWeight.w500,
                 ),
-                child: SingleChildScrollView(
-                  child: DataTable(
-                    columnSpacing: 24,
-                    horizontalMargin: 16,
-                    headingRowColor: MaterialStateProperty.all(Colors.grey[50]),
-                    dataRowMaxHeight: 80,
-                    columns: const [
-                      DataColumn(
-                        label: Text(
-                          'Patient',
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                      DataColumn(
-                        label: Text(
-                          'Contact',
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                      DataColumn(
-                        label: Text(
-                          'Last Visit',
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                      DataColumn(
-                        label: Text(
-                          'Upcoming',
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                      DataColumn(
-                        label: Text(
-                          'Status',
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                      DataColumn(
-                        label: Text(
-                          'Balance',
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                      DataColumn(
-                        label: Text(
-                          'Actions',
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                    ],
-                    rows: [
-                      _buildPatientRow(
-                        avatarText: 'JS',
-                        name: 'John Smith',
-                        id: 'P001 • 42y, Male',
-                        email: 'john.smith@email.com',
-                        contact: '+1 (555) 123-4567',
-                        lastVisit: '2025-10-08',
-                        upcoming: '2025-10-15',
-                        status: 'active',
-                        balance: 0,
-                      ),
-                      _buildPatientRow(
-                        avatarText: 'EW',
-                        name: 'Emma Wilson',
-                        id: 'P002 • 28y, Female',
-                        email: 'emma.w@email.com',
-                        contact: '+1 (555) 234-5678',
-                        lastVisit: '2025-10-10',
-                        upcoming: '2025-10-14',
-                        status: 'active',
-                        balance: 450,
-                      ),
-                      _buildPatientRow(
-                        avatarText: 'MB',
-                        name: 'Michael Brown',
-                        id: 'P003 • 35y, Male',
-                        email: 'mbrown@email.com',
-                        contact: '+1 (555) 345-6789',
-                        lastVisit: '2025-09-25',
-                        upcoming: '-',
-                        status: 'active',
-                        balance: 0,
-                      ),
-                      _buildPatientRow(
-                        avatarText: 'SD',
-                        name: 'Sarah Davis',
-                        id: 'P004 • 51y, Female',
-                        email: 'sdavis@email.com',
-                        contact: '+1 (555) 456-7890',
-                        lastVisit: '2025-10-05',
-                        upcoming: '2025-11-02',
-                        status: 'active',
-                        balance: 280,
-                      ),
-                      _buildPatientRow(
-                        avatarText: 'JT',
-                        name: 'James Taylor',
-                        id: 'P005 • 19y, Male',
-                        email: 'jtaylor@email.com',
-                        contact: '+1 (555) 567-8901',
-                        lastVisit: '2025-10-11',
-                        upcoming: '2025-10-20',
-                        status: 'active',
-                        balance: 0,
-                      ),
-                      _buildPatientRow(
-                        avatarText: 'LG',
-                        name: 'Linda Garcia',
-                        id: 'P006 • 63y, Female',
-                        email: 'lgarcia@email.com',
-                        contact: '+1 (555) 678-9012',
-                        lastVisit: '2025-08-15',
-                        upcoming: '-',
-                        status: 'inactive',
-                        balance: 1200,
-                      ),
-                    ],
-                  ),
-                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Add a new patient to get started',
+                style: TextStyle(fontSize: 14, color: Colors.grey[500]),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withValues(alpha: 0.1),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: SingleChildScrollView(
+        child: DataTable(
+          columnSpacing: 24,
+          horizontalMargin: 16,
+          headingRowColor: WidgetStateProperty.all(Colors.grey[50]),
+          dataRowMaxHeight: 80,
+          columns: const [
+            DataColumn(
+              label: Text(
+                'Patient',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ),
+            DataColumn(
+              label: Text(
+                'Contact',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ),
+            DataColumn(
+              label: Text(
+                'Last Visit',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ),
+            DataColumn(
+              label: Text(
+                'Upcoming',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ),
+            DataColumn(
+              label: Text(
+                'Status',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ),
+            DataColumn(
+              label: Text(
+                'Balance',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ),
+            DataColumn(
+              label: Text(
+                'Actions',
+                style: TextStyle(fontWeight: FontWeight.bold),
               ),
             ),
           ],
+          rows: patients.map((patient) => _buildPatientRow(patient)).toList(),
         ),
       ),
     );
   }
 
-  DataRow _buildPatientRow({
-    required String avatarText,
-    required String name,
-    required String id,
-    required String email,
-    required String contact,
-    required String lastVisit,
-    required String upcoming,
-    required String status,
-    required int balance,
-  }) {
+  DataRow _buildPatientRow(Patient patient) {
+    final dateFormat = DateFormat('yyyy-MM-dd');
+
     return DataRow(
       cells: [
         DataCell(
@@ -388,12 +434,12 @@ class _PatientsPageState extends State<PatientsPage> {
                 width: 40,
                 height: 40,
                 decoration: BoxDecoration(
-                  color: _getAvatarColor(avatarText),
+                  color: _getAvatarColor(patient.initials),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Center(
                   child: Text(
-                    avatarText,
+                    patient.initials,
                     style: const TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
@@ -408,18 +454,18 @@ class _PatientsPageState extends State<PatientsPage> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    name,
+                    patient.fullName,
                     style: const TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 14,
                     ),
                   ),
                   Text(
-                    id,
+                    '${patient.id?.substring(0, 8) ?? 'N/A'} • ${patient.age ?? '-'}y, ${patient.gender ?? '-'}',
                     style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                   ),
                   Text(
-                    email,
+                    patient.email ?? '-',
                     style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                   ),
                 ],
@@ -427,24 +473,31 @@ class _PatientsPageState extends State<PatientsPage> {
             ],
           ),
         ),
-        DataCell(Text(contact)),
-        DataCell(Text(lastVisit)),
-        DataCell(Text(upcoming)),
+        DataCell(Text(patient.phone ?? '-')),
+        DataCell(Text(
+            patient.lastVisit != null ? dateFormat.format(patient.lastVisit!) : '-')),
+        DataCell(Text(patient.nextAppointment != null
+            ? dateFormat.format(patient.nextAppointment!)
+            : '-')),
         DataCell(
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
-              color: status == 'active' ? Colors.green[50] : Colors.grey[200],
+              color: patient.status == 'active'
+                  ? Colors.green[50]
+                  : Colors.grey[200],
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: status == 'active' ? Colors.green : Colors.grey,
+                color:
+                    patient.status == 'active' ? Colors.green : Colors.grey,
                 width: 1,
               ),
             ),
             child: Text(
-              status.toUpperCase(),
+              patient.status.toUpperCase(),
               style: TextStyle(
-                color: status == 'active' ? Colors.green : Colors.grey,
+                color:
+                    patient.status == 'active' ? Colors.green : Colors.grey,
                 fontSize: 12,
                 fontWeight: FontWeight.bold,
               ),
@@ -453,9 +506,11 @@ class _PatientsPageState extends State<PatientsPage> {
         ),
         DataCell(
           Text(
-            balance == 0 ? '\$0' : '\$$balance',
+            patient.balance == 0
+                ? '\$0'
+                : '\$${patient.balance.toStringAsFixed(0)}',
             style: TextStyle(
-              color: balance == 0 ? Colors.grey : Colors.red,
+              color: patient.balance == 0 ? Colors.grey : Colors.red,
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -465,11 +520,11 @@ class _PatientsPageState extends State<PatientsPage> {
             children: [
               IconButton(
                 icon: const Icon(Icons.edit_outlined, size: 20),
-                onPressed: () {},
+                onPressed: () => _showEditPatientDialog(patient),
               ),
               IconButton(
                 icon: const Icon(Icons.delete_outlined, size: 20),
-                onPressed: () {},
+                onPressed: () => _deletePatient(patient),
               ),
             ],
           ),
@@ -501,7 +556,7 @@ class _PatientsPageState extends State<PatientsPage> {
     return Expanded(
       child: Card(
         elevation: 3.5,
-        shadowColor: Colors.grey.withOpacity(0.2),
+        shadowColor: Colors.grey.withValues(alpha: 0.2),
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Row(
@@ -529,13 +584,11 @@ class _PatientsPageState extends State<PatientsPage> {
                   ],
                 ),
               ),
-
               const SizedBox(width: 12),
-
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
+                  color: color.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Icon(iconData, color: color, size: 24),
