@@ -263,7 +263,7 @@ class _PatientsPageContentState extends State<_PatientsPageContent> {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withValues(alpha: 0.1),
+            color: Colors.grey.withOpacity(0.1),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -322,7 +322,7 @@ class _PatientsPageContentState extends State<_PatientsPageContent> {
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
-              color: Colors.grey.withValues(alpha: 0.1),
+              color: Colors.grey.withOpacity(0.1),
               blurRadius: 10,
               offset: const Offset(0, 2),
             ),
@@ -360,7 +360,7 @@ class _PatientsPageContentState extends State<_PatientsPageContent> {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withValues(alpha: 0.1),
+            color: Colors.grey.withOpacity(0.1),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -370,7 +370,7 @@ class _PatientsPageContentState extends State<_PatientsPageContent> {
         child: DataTable(
           columnSpacing: 24,
           horizontalMargin: 16,
-          headingRowColor: WidgetStateProperty.all(Colors.grey[50]),
+          headingRowColor: MaterialStateProperty.all(Colors.grey[50]),
           dataRowMaxHeight: 80,
           columns: const [
             DataColumn(
@@ -556,7 +556,7 @@ class _PatientsPageContentState extends State<_PatientsPageContent> {
     return Expanded(
       child: Card(
         elevation: 3.5,
-        shadowColor: Colors.grey.withValues(alpha: 0.2),
+        shadowColor: Colors.grey.withOpacity(0.2),
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Row(
@@ -588,7 +588,7 @@ class _PatientsPageContentState extends State<_PatientsPageContent> {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.1),
+                  color: color.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Icon(iconData, color: color, size: 24),
