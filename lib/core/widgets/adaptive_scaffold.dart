@@ -49,7 +49,6 @@ class _AdaptiveScaffoldState extends State<AdaptiveScaffold> {
           AppNavbar(
             selectedIndex: _selectedIndex,
             onItemSelected: (i) => setState(() => _selectedIndex = i),
-            patientsN: 254,
             appointmentsN: 20,
             billingsN: 3,
           ),
