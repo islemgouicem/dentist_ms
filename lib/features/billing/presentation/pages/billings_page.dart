@@ -153,8 +153,6 @@ class _BillingsPageState extends State<BillingsPage>
     super.initState();
     _tabController = TabController(length: 4, vsync: this);
     _calculateStatistics();
-    // TODO: Fetch statistics from backend
-    // _fetchStatisticsFromBackend();
   }
 
   @override
@@ -346,9 +344,7 @@ class _BillingsPageState extends State<BillingsPage>
         children: [
           BillingServiceCatalogControls(
             responsive: responsive,
-            onAddService: () {
-              // TODO: Show add service dialog
-            },
+            onAddService: () {},
           ),
           SizedBox(
             height: 500,
@@ -366,12 +362,7 @@ class _BillingsPageState extends State<BillingsPage>
     return SingleChildScrollView(
       child: Column(
         children: [
-          BillingExpensesControls(
-            responsive: responsive,
-            onAddExpense: () {
-              // TODO: Show add expense dialog
-            },
-          ),
+          BillingExpensesControls(responsive: responsive, onAddExpense: () {}),
           SizedBox(
             height: 500,
             child: BillingExpensesTable(
