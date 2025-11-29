@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:dentist_ms/core/constants/app_colors.dart';
+import 'package:intl/intl.dart';
 import '../widgets/header.dart';
 import '../widgets/statistics.dart';
-
 import '../widgets/invoices.dart';
-
 import '../widgets/services.dart';
 import '../widgets/expenses.dart';
 import '../widgets/payment_history.dart';
-
 import '../../utils/billing_responsive_helper.dart';
+import '../../models/invoice.dart';
+import '../../models/payment.dart';
 
 class BillingsPage extends StatefulWidget {
   const BillingsPage({Key? key}) : super(key: key);
@@ -23,61 +23,56 @@ class _BillingsPageState extends State<BillingsPage>
   late TabController _tabController;
   String _selectedStatus = 'Tous les statuts';
 
-  // Statistics data - will be fetched from backend
   double _totalRevenue = 0.0;
   double _pendingPayments = 0.0;
   double _overdue = 0.0;
   double _thisMonth = 0.0;
 
-  // Placeholder data - will be replaced with backend data
-  final List<Map<String, dynamic>> _invoices = [
-    {
-      'id': 'FAC-001',
-      'patient': 'Jean Dupont',
-      'date': '2024-10-15',
-      'amount': 1500.00,
-      'paid': 1500.00,
-      'status': 'paid',
-      'treatment': 'Traitement de canal',
-    },
-    {
-      'id': 'FAC-002',
-      'patient': 'Marie Martin',
-      'date': '2024-10-16',
-      'amount': 800.00,
-      'paid': 400.00,
-      'status': 'partial',
-      'treatment': 'Nettoyage dentaire',
-    },
-    {
-      'id': 'FAC-003',
-      'patient': 'Pierre Bernard',
-      'date': '2024-10-17',
-      'amount': 2500.00,
-      'paid': 2500.00,
-      'status': 'paid',
-      'treatment': 'Implant dentaire',
-    },
-    {
-      'id': 'FAC-004',
-      'patient': 'Sophie Dubois',
-      'date': '2024-10-18',
-      'amount': 600.00,
-      'paid': 0.00,
-      'status': 'unpaid',
-      'treatment': 'Plombage',
-    },
-    {
-      'id': 'FAC-005',
-      'patient': 'Luc Moreau',
-      'date': '2024-10-19',
-      'amount': 1200.00,
-      'paid': 1200.00,
-      'status': 'paid',
-      'treatment': 'Couronne',
-    },
+  final List<Invoice> _invoices = [
+    Invoice(
+      id: 1,
+      invoiceNumber: 'FAC-001',
+      patientId: 101,
+      status: 'paid',
+      startDate: DateTime.parse('2024-10-15'),
+      dueDate: DateTime.parse('2024-10-20'),
+      subtotalAmount: 1500.00,
+      discountAmount: 0.0,
+      totalAmount: 1500.00,
+      notes: 'Traitement de canal',
+      createdAt: DateTime.parse('2024-10-15'),
+      updatedAt: DateTime.parse('2024-10-20'),
+    ),
+    Invoice(
+      id: 2,
+      invoiceNumber: 'FAC-002',
+      patientId: 102,
+      status: 'partial',
+      startDate: DateTime.parse('2024-10-16'),
+      dueDate: DateTime.parse('2024-10-21'),
+      subtotalAmount: 800.00,
+      discountAmount: 0.0,
+      totalAmount: 800.00,
+      notes: 'Nettoyage dentaire',
+      createdAt: DateTime.parse('2024-10-16'),
+      updatedAt: DateTime.parse('2024-10-21'),
+    ),
+    Invoice(
+      id: 3,
+      invoiceNumber: 'FAC-003',
+      patientId: 103,
+      status: 'paid',
+      startDate: DateTime.parse('2024-10-17'),
+      dueDate: DateTime.parse('2024-10-22'),
+      subtotalAmount: 2500.00,
+      discountAmount: 0.0,
+      totalAmount: 2500.00,
+      notes: 'Implant dentaire',
+      createdAt: DateTime.parse('2024-10-17'),
+      updatedAt: DateTime.parse('2024-10-22'),
+    ),
   ];
-  // Update the _expenses list in _BillingsPageState class
+
   final List<Map<String, dynamic>> _expenses = [
     {
       'date': '2025-10-12',
@@ -104,6 +99,7 @@ class _BillingsPageState extends State<BillingsPage>
       'amount': 320.00,
     },
   ];
+
   final List<Map<String, dynamic>> _services = [
     {'name': 'Nettoyage dentaire', 'price': 150.00},
     {'name': 'Plombage dentaire', 'price': 280.00},
@@ -113,39 +109,43 @@ class _BillingsPageState extends State<BillingsPage>
     {'name': 'Blanchiment des dents', 'price': 500.00},
   ];
 
-  final List<Map<String, dynamic>> _payments = [
-    {
-      'date': '2025-10-20',
-      'invoiceId': 'FAC-001',
-      'patient': 'Jean Dupont',
-      'amount': 1500.00,
-
-      'status': 'Terminé',
-    },
-    {
-      'date': '2025-10-19',
-      'invoiceId': 'FAC-005',
-      'patient': 'Luc Moreau',
-      'amount': 1200.00,
-
-      'status': 'Terminé',
-    },
-    {
-      'date': '2025-10-17',
-      'invoiceId': 'FAC-003',
-      'patient': 'Pierre Bernard',
-      'amount': 2500.00,
-
-      'status': 'Terminé',
-    },
-    {
-      'date': '2025-10-16',
-      'invoiceId': 'FAC-002',
-      'patient': 'Marie Martin',
-      'amount': 400.00,
-
-      'status': 'Terminé',
-    },
+  final List<Payment> _payments = [
+    Payment(
+      id: 1,
+      invoiceId: 1,
+      paymentDate: DateTime.parse('2025-10-20'),
+      amount: 1500.00,
+      method: 'Carte',
+      reference: 'REF001',
+      notes: 'Terminé',
+    ),
+    Payment(
+      id: 2,
+      invoiceId: 5,
+      paymentDate: DateTime.parse('2025-10-19'),
+      amount: 1200.00,
+      method: 'Espèces',
+      reference: 'REF002',
+      notes: 'Terminé',
+    ),
+    Payment(
+      id: 3,
+      invoiceId: 3,
+      paymentDate: DateTime.parse('2025-10-17'),
+      amount: 2500.00,
+      method: 'Chèque',
+      reference: 'REF003',
+      notes: 'Terminé',
+    ),
+    Payment(
+      id: 4,
+      invoiceId: 2,
+      paymentDate: DateTime.parse('2025-10-16'),
+      amount: 400.00,
+      method: 'Carte',
+      reference: 'REF004',
+      notes: 'Terminé',
+    ),
   ];
 
   @override
@@ -161,7 +161,6 @@ class _BillingsPageState extends State<BillingsPage>
     super.dispose();
   }
 
-  // Calculate statistics from invoice data
   void _calculateStatistics() {
     double totalRevenue = 0.0;
     double pendingPayments = 0.0;
@@ -173,26 +172,23 @@ class _BillingsPageState extends State<BillingsPage>
     final currentYear = now.year;
 
     for (var invoice in _invoices) {
-      final amount = invoice['amount'] as double;
-      final paid = invoice['paid'] as double;
+      final amount = invoice.totalAmount ?? 0.0;
+      final paid = invoice.status == 'paid'
+          ? (invoice.totalAmount ?? 0.0)
+          : (invoice.status == 'partial'
+                ? ((invoice.totalAmount ?? 0.0) / 2)
+                : 0.0);
       final balance = amount - paid;
-      final status = invoice['status'] as String;
-      final invoiceDate = DateTime.parse(invoice['date']);
+      final status = invoice.status ?? '';
+      final invoiceDate = invoice.startDate ?? DateTime.now();
 
-      // Total revenue (all paid amounts)
       totalRevenue += paid;
-
-      // Pending payments (partial and unpaid)
       if (status == 'partial' || status == 'unpaid') {
         pendingPayments += balance;
       }
-
-      // Overdue (unpaid invoices)
       if (status == 'unpaid') {
         overdue += balance;
       }
-
-      // This month revenue
       if (invoiceDate.month == currentMonth &&
           invoiceDate.year == currentYear) {
         thisMonth += paid;
@@ -207,7 +203,7 @@ class _BillingsPageState extends State<BillingsPage>
     });
   }
 
-  List<Map<String, dynamic>> get _filteredInvoices {
+  List<Invoice> get _filteredInvoices {
     if (_selectedStatus == 'Tous les statuts') {
       return _invoices;
     }
@@ -218,7 +214,7 @@ class _BillingsPageState extends State<BillingsPage>
     if (statusFilter == 'non payé') statusFilter = 'unpaid';
 
     return _invoices.where((invoice) {
-      return invoice['status'].toLowerCase() == statusFilter;
+      return (invoice.status?.toLowerCase() ?? '') == statusFilter;
     }).toList();
   }
 
@@ -244,7 +240,6 @@ class _BillingsPageState extends State<BillingsPage>
                 children: [
                   BillingHeader(responsive: responsive),
                   SizedBox(height: responsive.sectionSpacing),
-
                   BillingStatisticsSection(
                     responsive: responsive,
                     totalRevenue: _totalRevenue,
@@ -253,7 +248,6 @@ class _BillingsPageState extends State<BillingsPage>
                     thisMonth: _thisMonth,
                   ),
                   SizedBox(height: responsive.sectionSpacing),
-
                   _buildTabSection(responsive),
                 ],
               ),
@@ -332,7 +326,7 @@ class _BillingsPageState extends State<BillingsPage>
             selectedStatus: _selectedStatus,
             onStatusChanged: _onStatusChanged,
           ),
-          BillingDataTable(invoices: _filteredInvoices, responsive: responsive),
+          InvoiceTable(invoices: _filteredInvoices, responsive: responsive),
         ],
       ),
     );
@@ -383,7 +377,7 @@ class _BillingsPageState extends State<BillingsPage>
           SizedBox(
             height: 500,
             child: BillingPaymentHistoryTable(
-              payments: _payments,
+              payments: _payments.map((e) => e.toJson()).toList(),
               responsive: responsive,
             ),
           ),
