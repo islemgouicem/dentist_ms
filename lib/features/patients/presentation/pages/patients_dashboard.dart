@@ -16,7 +16,7 @@ class PatientsDashboard extends StatefulWidget {
 }
 
 class _PatientsDashboardState extends State<PatientsDashboard> {
-  var  totalPatients;
+  var totalPatients = 1;
   var activePatients = 2145;
   var newPatients = 127;
   var balance = 12340;
@@ -53,6 +53,7 @@ class _PatientsDashboardState extends State<PatientsDashboard> {
           // Update summary stats from loaded patients
           final patients = state.patients;
           final total = patients.length;
+          print(total);
           final active = patients
               .where((p) => (p.status ?? '').toLowerCase() == 'active')
               .length;
@@ -65,9 +66,12 @@ class _PatientsDashboardState extends State<PatientsDashboard> {
 
           // We don't have a balance field in the Patient model here;
           // leave balance as-is or set to 0 if you prefer.
-          totalPatients = total;
-          activePatients = active;
-          newPatients = newCount;
+          setState(() {
+            totalPatients = total;
+            activePatients = active;
+            newPatients = newCount;
+          });
+
           // keep balance unchanged
         } else if (state is PatientsOperationFailure) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -713,7 +717,7 @@ class _PatientsDashboardState extends State<PatientsDashboard> {
       ),
     );
   }
-
+/*
   String _getInitials(String name) {
     final parts = name.trim().split(RegExp('\\s+'));
     if (parts.isEmpty) return 'NN';
@@ -722,7 +726,7 @@ class _PatientsDashboardState extends State<PatientsDashboard> {
     }
     return (parts[0][0] + parts[1][0]).toUpperCase();
   }
-
+*/
   void _showAddPatientDialog() {
     _nameController.clear();
     _addressController.clear();

@@ -1,9 +1,13 @@
 import 'package:dentist_ms/core/constants/app_colors.dart';
 import 'package:dentist_ms/core/constants/app_text_styles.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import '../widgets/profil_widget.dart';
 import '../widgets/clinic_widget.dart';
 import '../widgets/security_widget.dart';
+import 'package:dentist_ms/features/settings/bloc/setting_bloc.dart';
+import 'package:dentist_ms/features/settings/repositories/setting_repository.dart';
+import 'package:dentist_ms/features/settings/data/setting_remote.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -13,10 +17,8 @@ class SettingsPage extends StatefulWidget {
 }
 
 class _SettingsPageState extends State<SettingsPage> {
-  // define needed variable to controll the width, height, current_widget
   late double width;
   late double height;
-
   int current_page = 1;
 
   final ClinicControllers clinicControllers = ClinicControllers();
@@ -25,24 +27,35 @@ class _SettingsPageState extends State<SettingsPage> {
 
   @override
   void dispose() {
-    clinicControllers.dispose(); // Important: dispose controllers
+    clinicControllers.dispose();
     profilControllers.dispose();
     securityControllers.dispose();
     super.dispose();
   }
 
-  // helper function
-  void swap_widget(int i){
-    setState(() {current_page = i;});
+  void swap_widget(int i) {
+    setState(() {
+      current_page = i;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (context) => SettingBloc(
+        repository: SupabaseSettingRepository(
+          remote: SettingRemoteDataSource(),
+        ),
+      ),
+      child: _buildSettingsContent(),
+    );
+  }
 
+  // Separate method for the actual content
+  Widget _buildSettingsContent() {
     width = MediaQuery.of(context).size.width;
     height = MediaQuery.of(context).size.height;
 
-    // Choose which widget to show
     Widget currentWidget;
     if (current_page == 1) {
       currentWidget = clinic(context, width, height, clinicControllers); 
@@ -57,7 +70,7 @@ class _SettingsPageState extends State<SettingsPage> {
       body: SingleChildScrollView(
         child: Center(
           child: Padding(
-            padding: EdgeInsets.symmetric(vertical: height * 0.026, horizontal: width * 0.02 ),
+            padding: EdgeInsets.symmetric(vertical: height * 0.026, horizontal: width * 0.02),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.start,
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -66,7 +79,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 Text("Paramètres", style: Theme.of(context).textTheme.titleLarge),
                 SizedBox(height: height * 0.005),
                 Text("Gérer les préférences et les configurations de la clinique", style: AppTextStyles.subtitle1),
-                SizedBox(height: height * 0.03),
+                SizedBox(height: height * 0.015),
                 
                 // Navigation Tabs
                 Container(
@@ -76,7 +89,6 @@ class _SettingsPageState extends State<SettingsPage> {
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        // Clinic Info Tab
                         _buildNavigationTab(
                           index: 1,
                           icon: Icons.local_hospital_outlined,
@@ -84,8 +96,6 @@ class _SettingsPageState extends State<SettingsPage> {
                           activeIcon: Icons.local_hospital,
                         ),
                         SizedBox(width: width * 0.005),
-                        
-                        // Profile Tab
                         _buildNavigationTab(
                           index: 2,
                           icon: Icons.person_outline,
@@ -93,8 +103,6 @@ class _SettingsPageState extends State<SettingsPage> {
                           activeIcon: Icons.person,
                         ),
                         SizedBox(width: width * 0.005),
-                        
-                        // Security Tab
                         _buildNavigationTab(
                           index: 3,
                           icon: Icons.lock_outline,
@@ -106,7 +114,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   ),
                 ),
                 
-                SizedBox(height: height * 0.04),
+                SizedBox(height: height * 0.018),
                 currentWidget
               ],
             ),
@@ -116,7 +124,6 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
-  // Helper method to build navigation tabs
   Widget _buildNavigationTab({
     required int index,
     required IconData icon,
@@ -133,7 +140,7 @@ class _SettingsPageState extends State<SettingsPage> {
           BoxShadow(
             color: AppColors.shadow.withOpacity(0.1),
             blurRadius: 8,
-            offset: Offset(0, 2),
+            offset: const Offset(0, 2),
           )
         ] : null,
       ),
@@ -165,5 +172,4 @@ class _SettingsPageState extends State<SettingsPage> {
       ),
     );
   }
- 
 }

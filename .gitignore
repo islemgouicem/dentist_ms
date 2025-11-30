@@ -12,6 +12,12 @@
 .swiftpm/
 migrate_working_dir/
 
+
+# Environment variables
+.env
+.env.*
+
+
 # IntelliJ related
 *.iml
 *.ipr
@@ -56,3 +62,4 @@ app.*.map.json
 windows/flutter/ephemeral/
 linux/flutter/ephemeral/
 macos/Flutter/ephemeral/
+
