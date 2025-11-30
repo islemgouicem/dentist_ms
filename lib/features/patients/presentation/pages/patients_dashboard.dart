@@ -717,7 +717,7 @@ class _PatientsDashboardState extends State<PatientsDashboard> {
       ),
     );
   }
-
+/*
   String _getInitials(String name) {
     final parts = name.trim().split(RegExp('\\s+'));
     if (parts.isEmpty) return 'NN';
@@ -726,7 +726,7 @@ class _PatientsDashboardState extends State<PatientsDashboard> {
     }
     return (parts[0][0] + parts[1][0]).toUpperCase();
   }
-
+*/
   void _showAddPatientDialog() {
     _nameController.clear();
     _addressController.clear();
