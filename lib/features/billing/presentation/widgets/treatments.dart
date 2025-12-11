@@ -1,18 +1,22 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:dentist_ms/core/constants/app_colors.dart';
 import 'package:dentist_ms/core/constants/app_text_styles.dart';
 import 'table_wrapper.dart';
 import '../../utils/billing_responsive_helper.dart';
-import '../dialogs/add_service.dart';
+import '../dialogs/add_treatments.dart';
+import '../../bloc/treatment_bloc.dart';
+import '../../bloc/treatment_event.dart';
+import '../../models/treatment.dart';
 
-class BillingServiceCatalogControls extends StatelessWidget {
+class BillingTreatmentCatalogControls extends StatelessWidget {
   final BillingResponsiveHelper responsive;
-  final VoidCallback onAddService;
+  final VoidCallback onAddTreatment;
 
-  const BillingServiceCatalogControls({
+  const BillingTreatmentCatalogControls({
     Key? key,
     required this.responsive,
-    required this.onAddService,
+    required this.onAddTreatment,
   }) : super(key: key);
 
   @override
@@ -32,7 +36,7 @@ class BillingServiceCatalogControls extends StatelessWidget {
   Widget _buildSearchField() {
     return TextField(
       decoration: InputDecoration(
-        hintText: 'Rechercher des services...',
+        hintText: 'Rechercher des Treatments...',
         hintStyle: AppTextStyles.body1.copyWith(color: AppColors.textSecondary),
         prefixIcon: Icon(
           Icons.search,
@@ -66,17 +70,26 @@ class BillingServiceCatalogControls extends StatelessWidget {
       onPressed: () async {
         final result = await showDialog(
           context: context,
-          builder: (context) => const AddServiceDialog(),
+          builder: (context) => const AddTreatmentDialog(),
         );
 
-        if (result != null) {
-          print('New service added: $result');
-          onAddService();
+        if (result != null && context.mounted) {
+          // Create Treatment object from the dialog result
+          final treatment = Treatment(
+            code: result['code'] as String?,
+            name: result['name'] as String,
+            description: result['description'] as String?,
+            basePrice: result['price'] as double,
+          );
+
+          // Dispatch the AddTreatment event to the BLoC
+          context.read<TreatmentBloc>().add(AddTreatment(treatment));
+          onAddTreatment();
         }
       },
       icon: const Icon(Icons.add, size: 20),
       label: Text(
-        'Ajouter un service',
+        'Ajouter un Treatment',
         style: AppTextStyles.body1.copyWith(
           color: Colors.white,
           fontWeight: FontWeight.w600,
@@ -86,42 +99,42 @@ class BillingServiceCatalogControls extends StatelessWidget {
   }
 }
 
-class BillingServiceCatalogTable extends StatelessWidget {
-  final List<Map<String, dynamic>> services;
+class BillingTreatmentCatalogTable extends StatelessWidget {
+  final List<Map<String, dynamic>> Treatments;
   final BillingResponsiveHelper responsive;
 
-  const BillingServiceCatalogTable({
+  const BillingTreatmentCatalogTable({
     Key? key,
-    required this.services,
+    required this.Treatments,
     required this.responsive,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return BillingTableWrapper(
-      headers: ['Nom du service', 'Prix', 'Actions'],
+      headers: ['Nom du Treatment', 'Prix', 'Actions'],
       rows: _buildRows(),
     );
   }
 
   List<Widget> _buildRows() {
-    return services.asMap().entries.map((entry) {
+    return Treatments.asMap().entries.map((entry) {
       final index = entry.key;
-      final service = entry.value;
-      final isLast = index == services.length - 1;
+      final Treatment = entry.value;
+      final isLast = index == Treatments.length - 1;
 
       return BillingTableRow(
         isLast: isLast,
         cells: [
           Text(
-            service['name'],
+            Treatment['name'],
             style: AppTextStyles.body1.copyWith(
               fontWeight: FontWeight.w600,
               color: AppColors.textPrimary,
             ),
           ),
           Text(
-            '\$${service['price'].toStringAsFixed(0)}',
+            '\$${Treatment['price'].toStringAsFixed(0)}',
             style: AppTextStyles.body1.copyWith(
               fontWeight: FontWeight.w600,
               color: Colors.green,

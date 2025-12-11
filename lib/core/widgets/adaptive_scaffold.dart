@@ -33,7 +33,7 @@ class _AdaptiveScaffoldState extends State<AdaptiveScaffold> {
       case 2:
         return const AppointmentPage();
       case 3:
-        return const BillingsPage();
+        return const BillingsPageWrapper();
       case 4:
         return const SettingsPage();
       default:

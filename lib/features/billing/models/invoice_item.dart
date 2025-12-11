@@ -1,4 +1,6 @@
-class InvoiceItem {
+import 'package:equatable/equatable.dart';
+
+class InvoiceItem extends Equatable {
   final int? id;
   final int? invoiceId;
   final int? treatmentId;
@@ -36,8 +38,7 @@ class InvoiceItem {
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'id': id,
+    final Map<String, dynamic> data = {
       'invoice_id': invoiceId,
       'treatment_id': treatmentId,
       'description': description,
@@ -45,5 +46,43 @@ class InvoiceItem {
       'unit_price': unitPrice,
       'total_price': totalPrice,
     };
+
+    // Only include id for updates, not for inserts
+    if (id != null) {
+      data['id'] = id;
+    }
+
+    return data;
   }
+
+  InvoiceItem copyWith({
+    int? id,
+    int? invoiceId,
+    int? treatmentId,
+    String? description,
+    double? quantity,
+    double? unitPrice,
+    double? totalPrice,
+  }) {
+    return InvoiceItem(
+      id: id ?? this.id,
+      invoiceId: invoiceId ?? this.invoiceId,
+      treatmentId: treatmentId ?? this.treatmentId,
+      description: description ?? this.description,
+      quantity: quantity ?? this.quantity,
+      unitPrice: unitPrice ?? this.unitPrice,
+      totalPrice: totalPrice ?? this.totalPrice,
+    );
+  }
+
+  @override
+  List<Object?> get props => [
+    id,
+    invoiceId,
+    treatmentId,
+    description,
+    quantity,
+    unitPrice,
+    totalPrice,
+  ];
 }

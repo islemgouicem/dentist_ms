@@ -121,153 +121,90 @@ class InvoiceTable extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        children: [
-          _buildHeader(),
-          const SizedBox(height: 8),
-          ListView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: invoices.length,
-            itemBuilder: (context, index) => _buildRow(invoices[index]),
-          ),
-        ],
-      ),
+    return BillingTableWrapper(
+      headers: [
+        'N° Facture',
+        'Patient',
+        'Date',
+        'Traitement',
+        'Montant',
+        'Payé',
+        'Statut',
+      ],
+      rows: _buildRows(),
     );
   }
 
-  Widget _buildHeader() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: AppColors.background,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Row(
-        children: [
-          _headerCell('N° Facture', flex: 2),
-          _headerCell('Patient', flex: 2),
-          _headerCell('Date', flex: 2),
-          _headerCell('Traitement', flex: 3),
-          _headerCell('Montant', flex: 2, align: TextAlign.right),
-          _headerCell('Payé', flex: 2, align: TextAlign.right),
-          _headerCell('Statut', flex: 2, align: TextAlign.center),
-          const SizedBox(width: 40),
-        ],
-      ),
-    );
-  }
+  List<Widget> _buildRows() {
+    return invoices.asMap().entries.map((entry) {
+      final index = entry.key;
+      final invoice = entry.value;
+      final isLast = index == invoices.length - 1;
 
-  Widget _headerCell(
-    String text, {
-    int flex = 1,
-    TextAlign align = TextAlign.left,
-  }) {
-    return Expanded(
-      flex: flex,
-      child: Text(
-        text,
-        textAlign: align,
-        style: TextStyle(
-          fontSize: 14,
-          fontWeight: FontWeight.w600,
-          color: AppColors.textSecondary,
-        ),
-      ),
-    );
-  }
+      final status = invoice.status ?? '';
+      final totalAmount = invoice.totalAmount ?? 0.0;
+      final paidAmount = status == 'paid'
+          ? totalAmount
+          : (status == 'partial' ? totalAmount / 2 : 0.0);
 
-  Widget _buildRow(Invoice invoice) {
-    final status = invoice.status ?? '';
-    final totalAmount = invoice.totalAmount ?? 0.0;
-    final paidAmount = status == 'paid'
-        ? totalAmount
-        : (status == 'partial' ? totalAmount / 2 : 0.0);
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 4),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: AppColors.border.withOpacity(0.3)),
-      ),
-      child: Row(
-        children: [
-          _dataCell(invoice.invoiceNumber ?? '', flex: 2, bold: true),
-          _dataCell('', flex: 2),
-          _dataCell(_formatDate(invoice.startDate), flex: 2),
-          _dataCell(invoice.notes ?? '', flex: 3),
-          _dataCell(
-            '\$${totalAmount.toStringAsFixed(0)}',
-            flex: 2,
-            align: TextAlign.right,
-            bold: true,
-          ),
-          _dataCell(
-            '\$${paidAmount.toStringAsFixed(0)}',
-            flex: 2,
-            align: TextAlign.right,
-          ),
-          _statusCell(status, flex: 2),
-          SizedBox(
-            width: 40,
-            child: IconButton(
-              icon: Icon(Icons.more_vert, color: AppColors.textSecondary),
-              onPressed: () {},
-              iconSize: 20,
+      return BillingTableRow(
+        isLast: isLast,
+        cells: [
+          Text(
+            invoice.invoiceNumber ?? '',
+            style: AppTextStyles.body1.copyWith(
+              fontWeight: FontWeight.w600,
+              color: AppColors.textPrimary,
             ),
           ),
+          Text(
+            invoice.patientName ?? '-',
+            style: AppTextStyles.body1.copyWith(color: AppColors.textPrimary),
+          ),
+          Text(
+            _formatDate(invoice.startDate),
+            style: AppTextStyles.body1.copyWith(color: AppColors.textPrimary),
+          ),
+          Text(
+            invoice.treatmentName ?? '-',
+            style: AppTextStyles.body1.copyWith(color: AppColors.textPrimary),
+            overflow: TextOverflow.ellipsis,
+          ),
+          Text(
+            '\$${totalAmount.toStringAsFixed(0)}',
+            style: AppTextStyles.body1.copyWith(
+              fontWeight: FontWeight.w600,
+              color: AppColors.textPrimary,
+            ),
+          ),
+          Text(
+            '\$${paidAmount.toStringAsFixed(0)}',
+            style: AppTextStyles.body1.copyWith(color: AppColors.textPrimary),
+          ),
+          Center(child: _buildStatusBadge(status)),
         ],
-      ),
-    );
+      );
+    }).toList();
   }
 
-  Widget _dataCell(
-    String text, {
-    int flex = 1,
-    TextAlign align = TextAlign.left,
-    bool bold = false,
-  }) {
-    return Expanded(
-      flex: flex,
-      child: Text(
-        text,
-        textAlign: align,
-        style: TextStyle(
-          fontSize: 14,
-          fontWeight: bold ? FontWeight.w600 : FontWeight.normal,
-          color: AppColors.textPrimary,
-        ),
-        overflow: TextOverflow.ellipsis,
-      ),
-    );
-  }
-
-  Widget _statusCell(String status, {int flex = 1}) {
+  Widget _buildStatusBadge(String status) {
     final statusColor = _getStatusColor(status);
     final statusText = _getStatusText(status);
 
-    return Expanded(
-      flex: flex,
-      child: Center(
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-          decoration: BoxDecoration(
-            color: statusColor.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Text(
-            statusText,
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-              color: statusColor,
-            ),
-          ),
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: statusColor.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Text(
+        statusText,
+        style: TextStyle(
+          fontSize: 13,
+          fontWeight: FontWeight.w600,
+          color: statusColor,
         ),
+        textAlign: TextAlign.center,
       ),
     );
   }

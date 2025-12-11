@@ -1,9 +1,11 @@
 import 'package:equatable/equatable.dart';
 
-class Invoice {
+class Invoice extends Equatable {
   final int? id;
   final String? invoiceNumber;
   final int? patientId;
+  final String? patientName;
+  final String? treatmentName;
   final String? status;
   final DateTime? startDate;
   final DateTime? dueDate;
@@ -18,6 +20,8 @@ class Invoice {
     this.id,
     this.invoiceNumber,
     this.patientId,
+    this.patientName,
+    this.treatmentName,
     this.status,
     this.startDate,
     this.dueDate,
@@ -31,10 +35,35 @@ class Invoice {
 
   /// Factory method to create a Patient from Supabase JSON
   factory Invoice.fromJson(Map<String, dynamic> json) {
+    // Parse patient name from nested patients object
+    String? patientName;
+    if (json['patients'] != null) {
+      final patient = json['patients'] as Map<String, dynamic>;
+      final firstName = patient['first_name'] as String? ?? '';
+      final lastName = patient['last_name'] as String? ?? '';
+      patientName = '$firstName $lastName'.trim();
+      if (patientName.isEmpty) patientName = null;
+    }
+
+    // Parse treatment name from nested invoice_items and treatments
+    String? treatmentName;
+    if (json['invoice_items'] != null) {
+      final items = json['invoice_items'];
+      if (items is List && items.isNotEmpty) {
+        final firstItem = items[0] as Map<String, dynamic>;
+        if (firstItem['treatments'] != null) {
+          final treatment = firstItem['treatments'] as Map<String, dynamic>;
+          treatmentName = treatment['name'] as String?;
+        }
+      }
+    }
+
     return Invoice(
       id: json['id'] as int?,
       invoiceNumber: json['invoice_number'] as String?,
       patientId: json['patient_id'] as int?,
+      patientName: patientName,
+      treatmentName: treatmentName,
       status: json['status'] as String?,
       startDate: json['start_date'] != null
           ? DateTime.tryParse(json['start_date'].toString())
@@ -64,23 +93,71 @@ class Invoice {
   /// Convert Patient to JSON for Supabase
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = {
-      'id': id,
       'invoice_number': invoiceNumber,
       'patient_id': patientId,
       'status': status,
-      'start_date': startDate?.toIso8601String(),
-      'due_date': dueDate?.toIso8601String(),
+      'start_date': startDate?.toIso8601String().split('T').first,
+      'due_date': dueDate?.toIso8601String().split('T').first,
       'subtotal_amount': subtotalAmount,
       'discount_amount': discountAmount,
       'total_amount': totalAmount,
       'notes': notes,
-      'created_at': createdAt?.toIso8601String(),
-      'updated_at': updatedAt?.toIso8601String(),
     };
+
+    // Only include id for updates, not for inserts
     if (id != null) {
       data['id'] = id;
     }
 
     return data;
   }
+
+  Invoice copyWith({
+    int? id,
+    String? invoiceNumber,
+    int? patientId,
+    String? patientName,
+    String? status,
+    DateTime? startDate,
+    DateTime? dueDate,
+    double? subtotalAmount,
+    double? discountAmount,
+    double? totalAmount,
+    String? notes,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) {
+    return Invoice(
+      id: id ?? this.id,
+      invoiceNumber: invoiceNumber ?? this.invoiceNumber,
+      patientId: patientId ?? this.patientId,
+      patientName: patientName ?? this.patientName,
+      status: status ?? this.status,
+      startDate: startDate ?? this.startDate,
+      dueDate: dueDate ?? this.dueDate,
+      subtotalAmount: subtotalAmount ?? this.subtotalAmount,
+      discountAmount: discountAmount ?? this.discountAmount,
+      totalAmount: totalAmount ?? this.totalAmount,
+      notes: notes ?? this.notes,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
+
+  @override
+  List<Object?> get props => [
+    id,
+    invoiceNumber,
+    patientId,
+    patientName,
+    status,
+    startDate,
+    dueDate,
+    subtotalAmount,
+    discountAmount,
+    totalAmount,
+    notes,
+    createdAt,
+    updatedAt,
+  ];
 }

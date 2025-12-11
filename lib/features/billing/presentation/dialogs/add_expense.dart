@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:dentist_ms/core/constants/app_colors.dart';
 import 'package:dentist_ms/core/constants/app_text_styles.dart';
+import 'package:dentist_ms/features/billing/models/expense_category.dart';
+import 'package:dentist_ms/features/billing/data/expense_category_remote.dart';
 
 class AddExpenseDialog extends StatefulWidget {
   final Map<String, dynamic>? expense;
@@ -18,32 +20,44 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
   final _notesController = TextEditingController();
 
   DateTime _selectedDate = DateTime.now();
-  String? _selectedCategory;
+  int? _selectedCategoryId;
   String? _selectedPaymentMethod;
 
-  final List<String> _categories = [
-    'Fournitures dentaires',
-    'Équipement',
-    'Salaires',
-    'Loyer',
-    'Services publics',
-    'Marketing',
-    'Formation',
-    'Entretien',
-    'Autre',
-  ];
+  List<ExpenseCategory> _categories = [];
+  bool _isLoadingCategories = true;
 
   @override
   void initState() {
     super.initState();
+    _loadCategories();
     if (widget.expense != null) {
       _descriptionController.text = widget.expense!['description'] ?? '';
       _amountController.text = widget.expense!['amount']?.toString() ?? '';
       _notesController.text = widget.expense!['notes'] ?? '';
-      _selectedCategory = widget.expense!['category'];
+      _selectedCategoryId = widget.expense!['categoryId'] as int?;
       _selectedPaymentMethod = widget.expense!['paymentMethod'];
       if (widget.expense!['date'] != null) {
         _selectedDate = DateTime.parse(widget.expense!['date']);
+      }
+    }
+  }
+
+  Future<void> _loadCategories() async {
+    try {
+      final dataSource = ExpenseCategoryRemoteDataSource();
+      final categories = await dataSource.getExpenseCategories();
+      setState(() {
+        _categories = categories;
+        _isLoadingCategories = false;
+      });
+    } catch (e) {
+      setState(() {
+        _isLoadingCategories = false;
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erreur de chargement des catégories: $e')),
+        );
       }
     }
   }
@@ -177,20 +191,26 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
           ),
         ),
         const SizedBox(height: 8),
-        DropdownButtonFormField<String>(
-          value: _selectedCategory,
-          decoration: _inputDecoration('Sélectionner une catégorie'),
-          items: _categories.map((category) {
-            return DropdownMenuItem(value: category, child: Text(category));
-          }).toList(),
-          onChanged: (value) => setState(() => _selectedCategory = value),
-          validator: (value) {
-            if (value == null || value.isEmpty) {
-              return 'Veuillez sélectionner une catégorie';
-            }
-            return null;
-          },
-        ),
+        _isLoadingCategories
+            ? const Center(child: CircularProgressIndicator())
+            : DropdownButtonFormField<int>(
+                value: _selectedCategoryId,
+                decoration: _inputDecoration('Sélectionner une catégorie'),
+                items: _categories.map((category) {
+                  return DropdownMenuItem(
+                    value: category.id,
+                    child: Text(category.name ?? ''),
+                  );
+                }).toList(),
+                onChanged: (value) =>
+                    setState(() => _selectedCategoryId = value),
+                validator: (value) {
+                  if (value == null) {
+                    return 'Veuillez sélectionner une catégorie';
+                  }
+                  return null;
+                },
+              ),
       ],
     );
   }
@@ -374,7 +394,7 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
     if (_formKey.currentState!.validate()) {
       final expense = {
         'description': _descriptionController.text,
-        'category': _selectedCategory,
+        'categoryId': _selectedCategoryId,
         'amount': double.parse(_amountController.text),
         'date': _selectedDate.toString().split(' ')[0],
         'paymentMethod': _selectedPaymentMethod,

@@ -1,4 +1,6 @@
-class Payment {
+import 'package:equatable/equatable.dart';
+
+class Payment extends Equatable {
   final int? id;
   final int? invoiceId;
   final DateTime? paymentDate;
@@ -34,14 +36,51 @@ class Payment {
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'id': id,
+    final Map<String, dynamic> data = {
       'invoice_id': invoiceId,
-      'payment_date': paymentDate?.toIso8601String(),
+      'payment_date': paymentDate?.toIso8601String().split('T').first,
       'amount': amount,
       'method': method,
       'reference': reference,
       'notes': notes,
     };
+
+    // Only include id for updates, not for inserts
+    if (id != null) {
+      data['id'] = id;
+    }
+
+    return data;
   }
+
+  Payment copyWith({
+    int? id,
+    int? invoiceId,
+    DateTime? paymentDate,
+    double? amount,
+    String? method,
+    String? reference,
+    String? notes,
+  }) {
+    return Payment(
+      id: id ?? this.id,
+      invoiceId: invoiceId ?? this.invoiceId,
+      paymentDate: paymentDate ?? this.paymentDate,
+      amount: amount ?? this.amount,
+      method: method ?? this.method,
+      reference: reference ?? this.reference,
+      notes: notes ?? this.notes,
+    );
+  }
+
+  @override
+  List<Object?> get props => [
+    id,
+    invoiceId,
+    paymentDate,
+    amount,
+    method,
+    reference,
+    notes,
+  ];
 }
