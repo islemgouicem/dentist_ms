@@ -45,7 +45,7 @@ class BillingTableWrapper extends StatelessWidget {
                         header,
                         style: AppTextStyles.smallLabel.copyWith(
                           fontWeight: FontWeight.w600,
-                          color: AppColors.textSecondary,
+                          color: Colors.grey[600],
                         ),
                       ),
                     );

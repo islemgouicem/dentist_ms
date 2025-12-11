@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:dentist_ms/core/constants/app_colors.dart';
 import 'package:dentist_ms/core/constants/app_text_styles.dart';
+import 'package:intl/intl.dart';
 import 'table_wrapper.dart';
 import '../../utils/billing_responsive_helper.dart';
 
@@ -97,26 +98,41 @@ class BillingPaymentHistoryTable extends StatelessWidget {
       final payment = entry.value;
       final isLast = index == payments.length - 1;
 
+      final double amount = (payment['amount'] ?? 0.0) as double;
+
+      // Format date to yyyy-MM-dd
+      String dateStr = '';
+      final rawDate = payment['payment_date'] ?? payment['date'] ?? '';
+      if (rawDate is DateTime) {
+        dateStr = DateFormat('yyyy-MM-dd').format(rawDate);
+      } else if (rawDate is String && rawDate.isNotEmpty) {
+        try {
+          dateStr = DateFormat('yyyy-MM-dd').format(DateTime.parse(rawDate));
+        } catch (_) {
+          dateStr = rawDate;
+        }
+      }
+
       return BillingTableRow(
         isLast: isLast,
         cells: [
           Text(
-            payment['date'],
+            dateStr,
             style: AppTextStyles.body1.copyWith(color: AppColors.textSecondary),
           ),
           Text(
-            payment['invoiceId'],
+            (payment['invoiceId'] ?? payment['invoice_id'] ?? '').toString(),
             style: AppTextStyles.body1.copyWith(
               fontWeight: FontWeight.w600,
               color: AppColors.textPrimary,
             ),
           ),
           Text(
-            payment['patient'],
+            (payment['patient'] ?? '').toString(),
             style: AppTextStyles.body1.copyWith(color: AppColors.textPrimary),
           ),
           Text(
-            '\$${payment['amount'].toStringAsFixed(2)}',
+            '\$${amount.toStringAsFixed(2)}',
             style: AppTextStyles.body1.copyWith(
               fontWeight: FontWeight.w600,
               color: Colors.green,
@@ -130,8 +146,8 @@ class BillingPaymentHistoryTable extends StatelessWidget {
               borderRadius: BorderRadius.circular(12),
             ),
             child: Text(
-              payment['status'],
-              textAlign: TextAlign.center, // Center the text
+              (payment['status'] ?? payment['notes'] ?? '').toString(),
+              textAlign: TextAlign.center,
               style: AppTextStyles.body1.copyWith(
                 fontSize: 13,
                 color: Colors.green,
