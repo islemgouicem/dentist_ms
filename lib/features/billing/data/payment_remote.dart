@@ -13,7 +13,9 @@ class PaymentRemoteDataSource {
     try {
       final response = await _client
           .from('payments')
-          .select()
+          .select(
+            '*, invoices(invoice_number, patients(first_name, last_name))',
+          )
           .order('payment_date', ascending: false);
 
       return (response as List).map((json) => Payment.fromJson(json)).toList();

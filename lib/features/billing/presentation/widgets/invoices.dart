@@ -128,7 +128,6 @@ class InvoiceTable extends StatelessWidget {
         'Date',
         'Traitement',
         'Montant',
-        'Payé',
         'Statut',
       ],
       rows: _buildRows(),
@@ -143,9 +142,6 @@ class InvoiceTable extends StatelessWidget {
 
       final status = invoice.status ?? '';
       final totalAmount = invoice.totalAmount ?? 0.0;
-      final paidAmount = status == 'paid'
-          ? totalAmount
-          : (status == 'partial' ? totalAmount / 2 : 0.0);
 
       return BillingTableRow(
         isLast: isLast,
@@ -177,10 +173,7 @@ class InvoiceTable extends StatelessWidget {
               color: AppColors.textPrimary,
             ),
           ),
-          Text(
-            '\$${paidAmount.toStringAsFixed(0)}',
-            style: AppTextStyles.body1.copyWith(color: AppColors.textPrimary),
-          ),
+
           Center(child: _buildStatusBadge(status)),
         ],
       );

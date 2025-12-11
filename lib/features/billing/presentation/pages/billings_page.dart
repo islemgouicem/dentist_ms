@@ -452,7 +452,10 @@ class _BillingsPageState extends State<BillingsPage>
             .map(
               (payment) => {
                 'id': payment.id,
-
+                'invoice_id':
+                    payment.invoiceNumber ??
+                    payment.invoiceId?.toString() ??
+                    '-',
                 'payment_date': payment.paymentDate
                     ?.toIso8601String()
                     .split('T')
@@ -461,13 +464,19 @@ class _BillingsPageState extends State<BillingsPage>
                 'method': payment.method,
                 'reference': payment.reference,
                 'notes': payment.notes,
+                'patient': payment.patientName ?? '-',
+                'status': 'Payé',
               },
             )
             .toList();
         return SingleChildScrollView(
           child: Column(
             children: [
-              BillingPaymentHistoryControls(responsive: responsive),
+              BillingPaymentHistoryControls(
+                responsive: responsive,
+                onAddPayment: () =>
+                    context.read<PaymentBloc>().add(LoadPayments()),
+              ),
               Container(
                 height: 500,
                 child: BillingPaymentHistoryTable(

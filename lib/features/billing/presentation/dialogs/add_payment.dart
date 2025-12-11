@@ -1,105 +1,76 @@
 import 'package:flutter/material.dart';
 import 'package:dentist_ms/core/constants/app_colors.dart';
 import 'package:dentist_ms/core/constants/app_text_styles.dart';
-import 'package:dentist_ms/features/patients/models/patient.dart';
-import 'package:dentist_ms/features/patients/data/patient_remote.dart';
-import 'package:dentist_ms/features/billing/models/treatment.dart';
-import 'package:dentist_ms/features/billing/data/treatment_remote.dart';
+import '../../models/invoice.dart';
 
-class AddInvoiceDialog extends StatefulWidget {
-  const AddInvoiceDialog({Key? key}) : super(key: key);
+class AddPaymentDialog extends StatefulWidget {
+  final Map<String, dynamic>? payment;
+  final List<Invoice> invoices;
+
+  const AddPaymentDialog({Key? key, this.payment, this.invoices = const []})
+    : super(key: key);
 
   @override
-  State<AddInvoiceDialog> createState() => _AddInvoiceDialogState();
+  State<AddPaymentDialog> createState() => _AddPaymentDialogState();
 }
 
-class _AddInvoiceDialogState extends State<AddInvoiceDialog> {
+class _AddPaymentDialogState extends State<AddPaymentDialog> {
   final _formKey = GlobalKey<FormState>();
-  final _invoiceNumberController = TextEditingController();
   final _amountController = TextEditingController();
+  final _referenceController = TextEditingController();
   final _notesController = TextEditingController();
 
-  int? _selectedPatientId;
-  int? _selectedTreatmentId;
   DateTime _selectedDate = DateTime.now();
-  String _selectedStatus = 'unpaid';
+  String? _selectedMethod = 'cash';
+  int? _selectedInvoiceId;
 
-  List<Patient> _patients = [];
-  bool _isLoadingPatients = true;
-
-  List<Treatment> _treatments = [];
-  bool _isLoadingTreatments = true;
+  final List<String> _paymentMethods = [
+    'cash',
+    'credit_card',
+    'debit_card',
+    'bank_transfer',
+    'check',
+  ];
 
   @override
   void initState() {
     super.initState();
-    _loadPatients();
-    _loadTreatments();
-  }
-
-  Future<void> _loadPatients() async {
-    try {
-      final dataSource = PatientRemoteDataSource();
-      final patients = await dataSource.getPatients();
-      setState(() {
-        _patients = patients.where((p) => p.status == 'active').toList();
-        _isLoadingPatients = false;
-      });
-    } catch (e) {
-      setState(() {
-        _isLoadingPatients = false;
-      });
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur de chargement des patients: $e')),
-        );
-      }
-    }
-  }
-
-  Future<void> _loadTreatments() async {
-    try {
-      final dataSource = TreatmentRemoteDataSource();
-      final treatments = await dataSource.getTreatments();
-      setState(() {
-        _treatments = treatments;
-        _isLoadingTreatments = false;
-      });
-    } catch (e) {
-      setState(() {
-        _isLoadingTreatments = false;
-      });
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur de chargement des traitements: $e')),
-        );
+    if (widget.payment != null) {
+      _amountController.text = widget.payment!['amount']?.toString() ?? '';
+      _referenceController.text = widget.payment!['reference'] ?? '';
+      _notesController.text = widget.payment!['notes'] ?? '';
+      _selectedMethod = widget.payment!['method'];
+      _selectedInvoiceId = widget.payment!['invoiceId'];
+      if (widget.payment!['paymentDate'] != null) {
+        _selectedDate = DateTime.parse(widget.payment!['paymentDate']);
       }
     }
   }
 
   @override
   void dispose() {
-    _invoiceNumberController.dispose();
     _amountController.dispose();
-
+    _referenceController.dispose();
     _notesController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final isEditing = widget.payment != null;
+
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Container(
         width: MediaQuery.of(context).size.width * 0.9,
-        constraints: const BoxConstraints(maxWidth: 600, maxHeight: 700),
+        constraints: const BoxConstraints(maxWidth: 500, maxHeight: 700),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            _buildHeader(),
+            _buildHeader(isEditing),
             Expanded(
               child: Container(
-                color: Colors.white, // Added white background
+                color: Colors.white,
                 child: SingleChildScrollView(
                   padding: const EdgeInsets.all(24),
                   child: Form(
@@ -107,18 +78,15 @@ class _AddInvoiceDialogState extends State<AddInvoiceDialog> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _buildInvoiceNumberField(),
+                        _buildInvoiceDropdown(),
                         const SizedBox(height: 16),
-                        _buildPatientDropdown(),
+                        _buildAmountField(),
                         const SizedBox(height: 16),
                         _buildDatePicker(),
                         const SizedBox(height: 16),
-                        _buildTreatmentDropdown(),
+                        _buildMethodDropdown(),
                         const SizedBox(height: 16),
-                        _buildAmountField(),
-
-                        const SizedBox(height: 16),
-                        _buildStatusDropdown(),
+                        _buildReferenceField(),
                         const SizedBox(height: 16),
                         _buildNotesField(),
                       ],
@@ -127,14 +95,14 @@ class _AddInvoiceDialogState extends State<AddInvoiceDialog> {
                 ),
               ),
             ),
-            _buildActions(),
+            _buildActions(isEditing),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(bool isEditing) {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
@@ -150,13 +118,16 @@ class _AddInvoiceDialogState extends State<AddInvoiceDialog> {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(0.1),
+              color: Colors.green.withOpacity(0.1),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: Icon(Icons.receipt_long, color: AppColors.primary, size: 24),
+            child: const Icon(Icons.payment, color: Colors.green, size: 24),
           ),
           const SizedBox(width: 12),
-          Text('Nouvelle facture', style: AppTextStyles.headline2),
+          Text(
+            isEditing ? 'Modifier le paiement' : 'Ajouter un paiement',
+            style: AppTextStyles.headline2,
+          ),
           const Spacer(),
           IconButton(
             icon: const Icon(Icons.close),
@@ -168,7 +139,7 @@ class _AddInvoiceDialogState extends State<AddInvoiceDialog> {
     );
   }
 
-  Widget _buildInvoiceNumberField() {
+  Widget _buildInvoiceDropdown() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -180,146 +151,25 @@ class _AddInvoiceDialogState extends State<AddInvoiceDialog> {
           ),
         ),
         const SizedBox(height: 8),
-        TextFormField(
-          controller: _invoiceNumberController,
-          decoration: _inputDecoration('Ex: FAC-006'),
+        DropdownButtonFormField<int>(
+          value: _selectedInvoiceId,
+          decoration: _inputDecoration('Sélectionner une facture'),
+          items: widget.invoices.map((invoice) {
+            return DropdownMenuItem<int>(
+              value: invoice.id,
+              child: Text(
+                '${invoice.invoiceNumber} - ${invoice.patientName ?? "Patient inconnu"}',
+              ),
+            );
+          }).toList(),
+          onChanged: (value) => setState(() => _selectedInvoiceId = value),
           validator: (value) {
-            if (value == null || value.isEmpty) {
-              return 'Le numéro de facture est requis';
+            if (value == null) {
+              return 'Veuillez sélectionner une facture';
             }
             return null;
           },
         ),
-      ],
-    );
-  }
-
-  Widget _buildPatientDropdown() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Patient',
-          style: AppTextStyles.body1.copyWith(
-            fontWeight: FontWeight.w600,
-            color: AppColors.textPrimary,
-          ),
-        ),
-        const SizedBox(height: 8),
-        _isLoadingPatients
-            ? const Center(child: CircularProgressIndicator())
-            : DropdownButtonFormField<int>(
-                value: _selectedPatientId,
-                decoration: _inputDecoration('Sélectionner un patient'),
-                items: _patients.map((patient) {
-                  final fullName =
-                      '${patient.firstName ?? ''} ${patient.lastName ?? ''}'
-                          .trim();
-                  return DropdownMenuItem(
-                    value: patient.id,
-                    child: Text(
-                      fullName.isNotEmpty ? fullName : 'Patient ${patient.id}',
-                    ),
-                  );
-                }).toList(),
-                onChanged: (value) =>
-                    setState(() => _selectedPatientId = value),
-                validator: (value) {
-                  if (value == null) {
-                    return 'Veuillez sélectionner un patient';
-                  }
-                  return null;
-                },
-              ),
-      ],
-    );
-  }
-
-  Widget _buildDatePicker() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Date',
-          style: AppTextStyles.body1.copyWith(
-            fontWeight: FontWeight.w600,
-            color: AppColors.textPrimary,
-          ),
-        ),
-        const SizedBox(height: 8),
-        InkWell(
-          onTap: () async {
-            final date = await showDatePicker(
-              context: context,
-              initialDate: _selectedDate,
-              firstDate: DateTime(2020),
-              lastDate: DateTime(2030),
-            );
-            if (date != null) {
-              setState(() => _selectedDate = date);
-            }
-          },
-          child: InputDecorator(
-            decoration: _inputDecoration('Sélectionner une date'),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  '${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}',
-                  style: AppTextStyles.body1,
-                ),
-                Icon(Icons.calendar_today, size: 20, color: AppColors.primary),
-              ],
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildTreatmentDropdown() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Traitement',
-          style: AppTextStyles.body1.copyWith(
-            fontWeight: FontWeight.w600,
-            color: AppColors.textPrimary,
-          ),
-        ),
-        const SizedBox(height: 8),
-        _isLoadingTreatments
-            ? const Center(child: CircularProgressIndicator())
-            : DropdownButtonFormField<int>(
-                value: _selectedTreatmentId,
-                decoration: _inputDecoration('Sélectionner un traitement'),
-                items: _treatments.map((treatment) {
-                  return DropdownMenuItem(
-                    value: treatment.id,
-                    child: Text(treatment.name ?? ''),
-                  );
-                }).toList(),
-                onChanged: (value) {
-                  setState(() => _selectedTreatmentId = value);
-                  // Auto-fill amount with base price
-                  if (value != null) {
-                    final treatment = _treatments.firstWhere(
-                      (t) => t.id == value,
-                    );
-                    if (treatment.basePrice != null) {
-                      _amountController.text = treatment.basePrice!
-                          .toStringAsFixed(2);
-                    }
-                  }
-                },
-                validator: (value) {
-                  if (value == null) {
-                    return 'Veuillez sélectionner un traitement';
-                  }
-                  return null;
-                },
-              ),
       ],
     );
   }
@@ -329,7 +179,7 @@ class _AddInvoiceDialogState extends State<AddInvoiceDialog> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Montant total',
+          'Montant',
           style: AppTextStyles.body1.copyWith(
             fontWeight: FontWeight.w600,
             color: AppColors.textPrimary,
@@ -356,12 +206,54 @@ class _AddInvoiceDialogState extends State<AddInvoiceDialog> {
     );
   }
 
-  Widget _buildStatusDropdown() {
+  Widget _buildDatePicker() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Statut',
+          'Date de paiement',
+          style: AppTextStyles.body1.copyWith(
+            fontWeight: FontWeight.w600,
+            color: AppColors.textPrimary,
+          ),
+        ),
+        const SizedBox(height: 8),
+        InkWell(
+          onTap: () async {
+            final date = await showDatePicker(
+              context: context,
+              initialDate: _selectedDate,
+              firstDate: DateTime(2020),
+              lastDate: DateTime.now(),
+            );
+            if (date != null) {
+              setState(() => _selectedDate = date);
+            }
+          },
+          child: InputDecorator(
+            decoration: _inputDecoration('Sélectionner une date'),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  '${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}',
+                  style: AppTextStyles.body1,
+                ),
+                Icon(Icons.calendar_today, size: 20, color: AppColors.primary),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMethodDropdown() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Méthode de paiement',
           style: AppTextStyles.body1.copyWith(
             fontWeight: FontWeight.w600,
             color: AppColors.textPrimary,
@@ -369,14 +261,58 @@ class _AddInvoiceDialogState extends State<AddInvoiceDialog> {
         ),
         const SizedBox(height: 8),
         DropdownButtonFormField<String>(
-          value: _selectedStatus,
-          decoration: _inputDecoration('Sélectionner un statut'),
-          items: const [
-            DropdownMenuItem(value: 'paid', child: Text('Payé')),
-            DropdownMenuItem(value: 'partial', child: Text('Partiel')),
-            DropdownMenuItem(value: 'unpaid', child: Text('Non payé')),
-          ],
-          onChanged: (value) => setState(() => _selectedStatus = value!),
+          value: _selectedMethod,
+          decoration: _inputDecoration('Sélectionner une méthode'),
+          items: _paymentMethods.map((method) {
+            return DropdownMenuItem(
+              value: method,
+              child: Text(_getMethodLabel(method)),
+            );
+          }).toList(),
+          onChanged: (value) => setState(() => _selectedMethod = value),
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Veuillez sélectionner une méthode';
+            }
+            return null;
+          },
+        ),
+      ],
+    );
+  }
+
+  String _getMethodLabel(String method) {
+    switch (method) {
+      case 'cash':
+        return 'Espèces';
+      case 'credit_card':
+        return 'Carte de crédit';
+      case 'debit_card':
+        return 'Carte de débit';
+      case 'bank_transfer':
+        return 'Virement bancaire';
+      case 'check':
+        return 'Chèque';
+      default:
+        return method;
+    }
+  }
+
+  Widget _buildReferenceField() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Référence (optionnel)',
+          style: AppTextStyles.body1.copyWith(
+            fontWeight: FontWeight.w600,
+            color: AppColors.textPrimary,
+          ),
+        ),
+        const SizedBox(height: 8),
+        TextFormField(
+          controller: _referenceController,
+          decoration: _inputDecoration('Ex: REF-12345'),
         ),
       ],
     );
@@ -403,7 +339,7 @@ class _AddInvoiceDialogState extends State<AddInvoiceDialog> {
     );
   }
 
-  Widget _buildActions() {
+  Widget _buildActions(bool isEditing) {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
@@ -438,14 +374,14 @@ class _AddInvoiceDialogState extends State<AddInvoiceDialog> {
           ElevatedButton(
             onPressed: _handleSubmit,
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
+              backgroundColor: Colors.green,
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8),
               ),
             ),
             child: Text(
-              'Créer la facture',
+              isEditing ? 'Enregistrer' : 'Ajouter',
               style: AppTextStyles.body1.copyWith(
                 color: Colors.white,
                 fontWeight: FontWeight.w600,
@@ -485,20 +421,16 @@ class _AddInvoiceDialogState extends State<AddInvoiceDialog> {
 
   void _handleSubmit() {
     if (_formKey.currentState!.validate()) {
-      // Create invoice object
-      final invoice = {
-        'invoiceNumber': _invoiceNumberController.text,
-        'patientId': _selectedPatientId,
-        'treatmentId': _selectedTreatmentId,
-        'date': _selectedDate.toString().split(' ')[0],
-        'amount': double.parse(_amountController.text),
-
-        'status': _selectedStatus,
+      final payment = {
+        'invoiceId': _selectedInvoiceId,
+        'amount': double.tryParse(_amountController.text) ?? 0.0,
+        'paymentDate': _selectedDate.toString().split(' ')[0],
+        'method': _selectedMethod,
+        'reference': _referenceController.text,
         'notes': _notesController.text,
       };
 
-      // Return the invoice data to the calling page
-      Navigator.of(context).pop(invoice);
+      Navigator.of(context).pop(payment);
     }
   }
 }
