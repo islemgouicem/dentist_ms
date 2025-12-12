@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:dentist_ms/core/constants/app_colors.dart';
 import 'package:dentist_ms/core/constants/app_text_styles.dart';
 
 // class to hold all the controllers
@@ -11,6 +10,49 @@ class ClinicControllers {
   final TextEditingController addressController = TextEditingController();
   final TextEditingController aboutController = TextEditingController();
   final Map<String, List<TextEditingController>> workingHoursControllers = {};
+  
+  // Method to update controllers with data
+  void updateControllersFromClinicData({
+    String? clinicName,
+    String? registrationNumber,
+    String? email,
+    String? phone,
+    String? address,
+    String? about,
+    Map<String, List<String>>? workingHours,
+  }) {
+    
+    // Remove the _initialized check to allow updates
+    if (clinicName != null) {
+      clinicNameController.text = clinicName;
+    }
+    if (registrationNumber != null) {
+      registrationNumberController.text = registrationNumber;
+    }
+    if (email != null) {
+      emailController.text = email;
+    }
+    if (phone != null) {
+      phoneController.text = phone;
+    }
+    if (address != null) {
+      addressController.text = address;
+    }
+    if (about != null) {
+      aboutController.text = about;
+    }    
+    // Initialize working hours controllers with data if provided
+    if (workingHours != null) {
+      workingHours.forEach((day, times) {
+        if (workingHoursControllers.containsKey(day)) {
+          if (times.length >= 2) {
+            workingHoursControllers[day]![0].text = times[0];
+            workingHoursControllers[day]![1].text = times[1];
+          }
+        }
+      });
+    }
+  }
   
   void dispose() {
     clinicNameController.dispose();
@@ -28,7 +70,6 @@ class ClinicControllers {
     });
   }
 }
-
 // widget to display informations
 Widget clinic(BuildContext context, double width, double height, ClinicControllers controllers){
     List<String> daysList = ["Samedi", "Dimanche", "Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi"];
@@ -41,6 +82,26 @@ Widget clinic(BuildContext context, double width, double height, ClinicControlle
           TextEditingController()
         ];
       }
+      
+      // You can call this method to populate with initial data
+      // For example, from your database or default values:
+      controllers.updateControllersFromClinicData(
+        clinicName: 'Nom de la clinique par défaut',
+        registrationNumber: '12345',
+        email: 'clinique@example.com',
+        phone: '+1234567890',
+        address: 'Adresse par défaut',
+        about: 'Description de la clinique',
+        workingHours: {
+          'Lundi': ['08:00', '17:00'],
+          'Mardi': ['08:00', '17:00'],
+          'Mercredi': ['08:00', '17:00'],
+          'Jeudi': ['08:00', '17:00'],
+          'Vendredi': ['08:00', '17:00'],
+          'Samedi': ['09:00', '13:00'],
+          'Dimanche': ['Fermé', 'Fermé'],
+        },
+      );
     }
 
     return Column(
@@ -52,7 +113,7 @@ Widget clinic(BuildContext context, double width, double height, ClinicControlle
               mainAxisAlignment: MainAxisAlignment.start,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text("Informations sur la clinique",style: Theme.of(context).textTheme.titleLarge),
+                Text("Informations sur la clinique",style: Theme.of(context).textTheme.titleLarge!),
                 SizedBox(height: height * 0.03),
                 
                 // Responsive Row for clinic name and registration number
@@ -133,290 +194,13 @@ Widget clinic(BuildContext context, double width, double height, ClinicControlle
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: () {}, 
+                    onPressed: () {
+                      // You can access the values like this:
+                      print('Clinic Name: ${controllers.clinicNameController.text}');
+                      print('Email: ${controllers.emailController.text}');
+                      print('Phone: ${controllers.phoneController.text}');
+                    }, 
                     child: Text("Enregistrer les modifications"),
-                  ),
-                )
-              ],
-            ),
-          )
-        ),
-        
-        SizedBox(height: height * 0.04),
-        Card(
-          child: Padding(
-            padding:  EdgeInsets.symmetric(vertical: height * 0.02, horizontal: width * 0.03),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.start,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text("Horaires de travail",style: Theme.of(context).textTheme.bodyMedium),
-                SizedBox(height: height * 0.03),
-                
-                // Responsive layout for working hours and image
-                LayoutBuilder(
-                  builder: (context, constraints) {
-                    if (constraints.maxWidth < 600) {
-                      // Vertical layout for small screens
-                      return Column(
-                        children: [
-                          // Working days list
-                          Column(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              for(var day in daysList)
-                                Padding(
-                                  padding: EdgeInsets.only(bottom: height * 0.02),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.start,
-                                    children: [
-                                      SizedBox(
-                                        width: width * 0.1,
-                                        child: Text(day, style: AppTextStyles.title),
-                                      ),
-                                      SizedBox(width: width * 0.02),
-                                      Transform.scale(
-                                        scale: 0.7,
-                                        child: Switch(
-                                          value: true,
-                                          onChanged: (bool val) {},
-                                          activeThumbColor: AppColors.textPrimary,
-                                          activeTrackColor: AppColors.primary,
-                                          inactiveThumbColor: AppColors.cardgrey,    
-                                          inactiveTrackColor: Colors.grey[300],
-                                        ),
-                                      ),
-                                      SizedBox(width: width * 0.02),
-                                      // Start time field
-                                      Expanded(
-                                        child: SizedBox(
-                                          height: height * 0.05,
-                                          child: TextFormField(
-                                            textAlign: TextAlign.center,
-                                            controller: controllers.workingHoursControllers[day]![0],
-                                            readOnly: true,
-                                            decoration: const InputDecoration(),
-                                            onTap: () async {
-                                              TimeOfDay? picked = await showTimePicker(
-                                                context: context,
-                                                initialTime: TimeOfDay(hour: 8, minute: 0),
-                                                builder: (context, child) {
-                                                  return Theme(
-                                                    data: Theme.of(context).copyWith(
-                                                      colorScheme: ColorScheme.light(
-                                                        primary: AppColors.primary,
-                                                      ),
-                                                    ),
-                                                    child: child!,
-                                                  );
-                                                },
-                                              );
-                                              if (picked != null) {
-                                                controllers.workingHoursControllers[day]![0].text = 
-                                                    "${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}";
-                                              }
-                                            },
-                                          ),
-                                        ),
-                                      ),
-                                      SizedBox(width: width * 0.01),
-                                      Text("à"),
-                                      SizedBox(width: width * 0.01),
-                                      // End time field
-                                      Expanded(
-                                        child: SizedBox(
-                                          height: height * 0.05,
-                                          child: TextFormField(
-                                            controller: controllers.workingHoursControllers[day]![1],
-                                            readOnly: true,
-                                            decoration: const InputDecoration(),
-                                            onTap: () async {
-                                              TimeOfDay? picked = await showTimePicker(
-                                                context: context,
-                                                initialTime: TimeOfDay(hour: 8, minute: 0),
-                                                builder: (context, child) {
-                                                  return Theme(
-                                                    data: Theme.of(context).copyWith(
-                                                      colorScheme: ColorScheme.light(
-                                                        primary: AppColors.primary,
-                                                      ),
-                                                    ),
-                                                    child: child!,
-                                                  );
-                                                },
-                                              );
-                                              if (picked != null) {
-                                                controllers.workingHoursControllers[day]![1].text = 
-                                                    "${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}";
-                                              }
-                                            },
-                                          ),
-                                        ),
-                                      )
-                                    ],
-                                  ),
-                                ),
-                            ]
-                          ),
-                          SizedBox(height: height * 0.03),
-                          // Image below fields on small screens
-                          SizedBox(
-                            width:  width * 0.5,
-                            height: height * 0.3,
-                            child: Image.asset("assets/images/calender.png"),
-                          )
-                        ],
-                      );
-                    } else {
-                      // Horizontal layout for larger screens
-                      return IntrinsicHeight(
-  child: Row(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      // Working days list - take 70% of space
-      Expanded(
-        flex: 2,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            for(var day in daysList)
-              Padding(
-                padding: EdgeInsets.only(bottom: height * 0.015),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    // Day name
-                    SizedBox(
-                      width: width * 0.08,
-                      child: Text(day, style: AppTextStyles.title),
-                    ),
-                    SizedBox(width: width * 0.02),
-                    
-                    // Switch
-                    Transform.scale(
-                      scale: 0.7,
-                      child: Switch(
-                        value: true,
-                        onChanged: (bool val) {},
-                        activeThumbColor: AppColors.textPrimary,
-                        activeTrackColor: AppColors.primary,
-                        inactiveThumbColor: AppColors.cardgrey,    
-                        inactiveTrackColor: Colors.grey[300],
-                      ),
-                    ),
-                    SizedBox(width: width * 0.02),
-                    
-                    // Start time field - WRAPPED WITH ALIGN
-                    Align(
-                      alignment: Alignment.center,
-                      child: SizedBox(
-                        width: width * 0.055,
-                        height: height * 0.05,
-                        child: TextFormField(
-                          controller: controllers.workingHoursControllers[day]![0],
-                          readOnly: true,
-                          textAlign: TextAlign.center,
-                          decoration: const InputDecoration(
-                            contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 12), // Increased vertical padding
-                          ),
-                          onTap: () async {
-                            TimeOfDay? picked = await showTimePicker(
-                              context: context,
-                              initialTime: TimeOfDay(hour: 8, minute: 0),
-                              builder: (context, child) {
-                                return Theme(
-                                  data: Theme.of(context).copyWith(
-                                    colorScheme: ColorScheme.light(
-                                      primary: AppColors.primary,
-                                    ),
-                                  ),
-                                  child: child!,
-                                );
-                              },
-                            );
-                            if (picked != null) {
-                              controllers.workingHoursControllers[day]![0].text = 
-                                  "${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}";
-                            }
-                          },
-                        ),
-                      ),
-                    ),
-                    
-                    SizedBox(width: width * 0.01),
-                    Text("à", style: AppTextStyles.title),
-                    SizedBox(width: width * 0.01),
-                    
-                    // End time field - WRAPPED WITH ALIGN
-                    Align(
-                      alignment: Alignment.center,
-                      child: SizedBox(
-                        width: width * 0.055,
-                        height: height * 0.05,
-                        child: TextFormField(
-                          controller: controllers.workingHoursControllers[day]![1],
-                          readOnly: true,
-                          textAlign: TextAlign.center,
-                          decoration: const InputDecoration(
-                            contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 12), // Increased vertical padding
-                          ),
-                          onTap: () async {
-                            TimeOfDay? picked = await showTimePicker(
-                              context: context,
-                              initialTime: TimeOfDay(hour: 8, minute: 0),
-                              builder: (context, child) {
-                                return Theme(
-                                  data: Theme.of(context).copyWith(
-                                    colorScheme: ColorScheme.light(
-                                      primary: AppColors.primary,
-                                    ),
-                                  ),
-                                  child: child!,
-                                );
-                              },
-                            );
-                            if (picked != null) {
-                              controllers.workingHoursControllers[day]![1].text = 
-                                  "${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}";
-                            }
-                          },
-                        ),
-                      ),
-                    ),
-                  ],
-                ),              ),
-          ]
-        ),
-      ),
-      
-      SizedBox(width: width * 0.03),
-      
-      // Image - take 30% of space
-      Expanded(
-        flex: 2,
-        child: Center(
-          child: SizedBox(
-            width: width * 0.2,
-            height: height * 0.33,
-            child: Image.asset("assets/images/calender.png"),
-          ),
-        ),
-      )
-    ],
-  ),
-);                 }
-                  },
-                ),
-                
-                SizedBox(height:  height * 0.065),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () {}, 
-                    child: Text("Enregistrer les Heures"),
                   ),
                 )
               ],
