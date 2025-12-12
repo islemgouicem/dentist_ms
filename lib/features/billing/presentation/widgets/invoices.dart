@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:dentist_ms/core/constants/app_colors.dart';
 import 'package:dentist_ms/core/constants/app_text_styles.dart';
+import 'package:intl/intl.dart';
 import 'status_badge.dart';
 import 'table_wrapper.dart';
 import '../../utils/billing_responsive_helper.dart';
+import '../../models/invoice.dart';
 
 class BillingTableControls extends StatelessWidget {
   final BillingResponsiveHelper responsive;
@@ -107,11 +109,11 @@ class BillingTableControls extends StatelessWidget {
   }
 }
 
-class BillingDataTable extends StatelessWidget {
-  final List<Map<String, dynamic>> invoices;
+class InvoiceTable extends StatelessWidget {
+  final List<Invoice> invoices;
   final BillingResponsiveHelper responsive;
 
-  const BillingDataTable({
+  const InvoiceTable({
     Key? key,
     required this.invoices,
     required this.responsive,
@@ -126,8 +128,6 @@ class BillingDataTable extends StatelessWidget {
         'Date',
         'Traitement',
         'Montant',
-        'Payé',
-        'Solde',
         'Statut',
       ],
       rows: _buildRows(),
@@ -138,54 +138,98 @@ class BillingDataTable extends StatelessWidget {
     return invoices.asMap().entries.map((entry) {
       final index = entry.key;
       final invoice = entry.value;
-      final double amount = invoice['amount'];
-      final double paid = invoice['paid'] ?? 0.0;
-      final double balance = amount - paid;
       final isLast = index == invoices.length - 1;
+
+      final status = invoice.status ?? '';
+      final totalAmount = invoice.totalAmount ?? 0.0;
 
       return BillingTableRow(
         isLast: isLast,
         cells: [
           Text(
-            invoice['id'],
+            invoice.invoiceNumber ?? '',
             style: AppTextStyles.body1.copyWith(
               fontWeight: FontWeight.w600,
               color: AppColors.textPrimary,
             ),
           ),
           Text(
-            invoice['patient'],
+            invoice.patientName ?? '-',
             style: AppTextStyles.body1.copyWith(color: AppColors.textPrimary),
           ),
           Text(
-            invoice['date'],
-            style: AppTextStyles.body1.copyWith(color: AppColors.textSecondary),
-          ),
-          Text(
-            invoice['treatment'],
+            _formatDate(invoice.startDate),
             style: AppTextStyles.body1.copyWith(color: AppColors.textPrimary),
           ),
           Text(
-            '\$${amount.toStringAsFixed(0)}',
+            invoice.treatmentName ?? '-',
+            style: AppTextStyles.body1.copyWith(color: AppColors.textPrimary),
+            overflow: TextOverflow.ellipsis,
+          ),
+          Text(
+            '\$${totalAmount.toStringAsFixed(0)}',
             style: AppTextStyles.body1.copyWith(
               fontWeight: FontWeight.w600,
               color: AppColors.textPrimary,
             ),
           ),
-          Text(
-            '\$${paid.toStringAsFixed(0)}',
-            style: AppTextStyles.body1.copyWith(color: AppColors.textPrimary),
-          ),
-          Text(
-            '\$${balance.toStringAsFixed(0)}',
-            style: AppTextStyles.body1.copyWith(
-              fontWeight: FontWeight.w600,
-              color: balance > 0 ? Colors.red : Colors.green,
-            ),
-          ),
-          BillingStatusBadge(status: invoice['status']),
+
+          Center(child: _buildStatusBadge(status)),
         ],
       );
     }).toList();
+  }
+
+  Widget _buildStatusBadge(String status) {
+    final statusColor = _getStatusColor(status);
+    final statusText = _getStatusText(status);
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: statusColor.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Text(
+        statusText,
+        style: TextStyle(
+          fontSize: 13,
+          fontWeight: FontWeight.w600,
+          color: statusColor,
+        ),
+        textAlign: TextAlign.center,
+      ),
+    );
+  }
+
+  String _formatDate(DateTime? date) {
+    if (date == null) return '';
+    return DateFormat('yyyy-MM-dd').format(date);
+  }
+
+  Color _getStatusColor(String status) {
+    switch (status.toLowerCase()) {
+      case 'paid':
+        return const Color(0xFF10B981);
+      case 'partial':
+        return const Color(0xFFF59E0B);
+      case 'unpaid':
+        return const Color(0xFFEF4444);
+      default:
+        return AppColors.textSecondary;
+    }
+  }
+
+  String _getStatusText(String status) {
+    switch (status.toLowerCase()) {
+      case 'paid':
+        return 'Payé';
+      case 'partial':
+        return 'En attente';
+      case 'unpaid':
+        return 'En retard';
+      default:
+        return status;
+    }
   }
 }

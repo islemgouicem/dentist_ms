@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:dentist_ms/core/constants/app_colors.dart';
 import 'package:dentist_ms/core/constants/app_text_styles.dart';
 import 'table_wrapper.dart';
 import '../../utils/billing_responsive_helper.dart';
 import '../dialogs/add_expense.dart';
+import '../../bloc/expense_bloc.dart';
+import '../../bloc/expense_event.dart';
+import '../../models/expense.dart';
 
 class BillingExpensesControls extends StatelessWidget {
   final BillingResponsiveHelper responsive;
@@ -69,8 +73,17 @@ class BillingExpensesControls extends StatelessWidget {
           builder: (context) => const AddExpenseDialog(),
         );
 
-        if (result != null) {
-          print('New expense added: $result');
+        if (result != null && context.mounted) {
+          // Create Expense object from the dialog result
+          final expense = Expense(
+            description: result['description'] as String,
+            amount: result['amount'] as double,
+            expenseDate: DateTime.parse(result['date'] as String),
+            categoryId: result['categoryId'] as int?,
+          );
+
+          // Dispatch the AddExpense event to the BLoC
+          context.read<ExpenseBloc>().add(AddExpense(expense));
           onAddExpense();
         }
       },

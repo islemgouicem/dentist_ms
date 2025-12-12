@@ -1,84 +1,69 @@
 import 'package:flutter/material.dart';
 import 'package:dentist_ms/core/constants/app_colors.dart';
 import 'package:dentist_ms/core/constants/app_text_styles.dart';
-import 'package:dentist_ms/features/billing/models/expense_category.dart';
-import 'package:dentist_ms/features/billing/data/expense_category_remote.dart';
+import '../../models/invoice.dart';
 
-class AddExpenseDialog extends StatefulWidget {
-  final Map<String, dynamic>? expense;
+class AddPaymentDialog extends StatefulWidget {
+  final Map<String, dynamic>? payment;
+  final List<Invoice> invoices;
 
-  const AddExpenseDialog({Key? key, this.expense}) : super(key: key);
+  const AddPaymentDialog({Key? key, this.payment, this.invoices = const []})
+    : super(key: key);
 
   @override
-  State<AddExpenseDialog> createState() => _AddExpenseDialogState();
+  State<AddPaymentDialog> createState() => _AddPaymentDialogState();
 }
 
-class _AddExpenseDialogState extends State<AddExpenseDialog> {
+class _AddPaymentDialogState extends State<AddPaymentDialog> {
   final _formKey = GlobalKey<FormState>();
-  final _descriptionController = TextEditingController();
   final _amountController = TextEditingController();
+  final _referenceController = TextEditingController();
   final _notesController = TextEditingController();
 
   DateTime _selectedDate = DateTime.now();
-  int? _selectedCategoryId;
-  String? _selectedPaymentMethod;
+  String? _selectedMethod = 'cash';
+  int? _selectedInvoiceId;
 
-  List<ExpenseCategory> _categories = [];
-  bool _isLoadingCategories = true;
+  final List<String> _paymentMethods = [
+    'cash',
+    'credit_card',
+    'debit_card',
+    'bank_transfer',
+    'check',
+  ];
 
   @override
   void initState() {
     super.initState();
-    _loadCategories();
-    if (widget.expense != null) {
-      _descriptionController.text = widget.expense!['description'] ?? '';
-      _amountController.text = widget.expense!['amount']?.toString() ?? '';
-      _notesController.text = widget.expense!['notes'] ?? '';
-      _selectedCategoryId = widget.expense!['categoryId'] as int?;
-      _selectedPaymentMethod = widget.expense!['paymentMethod'];
-      if (widget.expense!['date'] != null) {
-        _selectedDate = DateTime.parse(widget.expense!['date']);
-      }
-    }
-  }
-
-  Future<void> _loadCategories() async {
-    try {
-      final dataSource = ExpenseCategoryRemoteDataSource();
-      final categories = await dataSource.getExpenseCategories();
-      setState(() {
-        _categories = categories;
-        _isLoadingCategories = false;
-      });
-    } catch (e) {
-      setState(() {
-        _isLoadingCategories = false;
-      });
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur de chargement des catégories: $e')),
-        );
+    if (widget.payment != null) {
+      _amountController.text = widget.payment!['amount']?.toString() ?? '';
+      _referenceController.text = widget.payment!['reference'] ?? '';
+      _notesController.text = widget.payment!['notes'] ?? '';
+      _selectedMethod = widget.payment!['method'];
+      _selectedInvoiceId = widget.payment!['invoiceId'];
+      if (widget.payment!['paymentDate'] != null) {
+        _selectedDate = DateTime.parse(widget.payment!['paymentDate']);
       }
     }
   }
 
   @override
   void dispose() {
-    _descriptionController.dispose();
     _amountController.dispose();
+    _referenceController.dispose();
     _notesController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final isEditing = widget.expense != null;
+    final isEditing = widget.payment != null;
 
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Container(
         width: MediaQuery.of(context).size.width * 0.9,
-        constraints: const BoxConstraints(maxWidth: 500, maxHeight: 650),
+        constraints: const BoxConstraints(maxWidth: 500, maxHeight: 700),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -93,15 +78,16 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _buildDescriptionField(),
-                        const SizedBox(height: 16),
-                        _buildCategoryDropdown(),
+                        _buildInvoiceDropdown(),
                         const SizedBox(height: 16),
                         _buildAmountField(),
                         const SizedBox(height: 16),
                         _buildDatePicker(),
                         const SizedBox(height: 16),
-
+                        _buildMethodDropdown(),
+                        const SizedBox(height: 16),
+                        _buildReferenceField(),
+                        const SizedBox(height: 16),
                         _buildNotesField(),
                       ],
                     ),
@@ -132,14 +118,14 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: Colors.red.withOpacity(0.1),
+              color: Colors.green.withOpacity(0.1),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: const Icon(Icons.payments, color: Colors.red, size: 24),
+            child: const Icon(Icons.payment, color: Colors.green, size: 24),
           ),
           const SizedBox(width: 12),
           Text(
-            isEditing ? 'Modifier la dépense' : 'Ajouter une dépense',
+            isEditing ? 'Modifier le paiement' : 'Ajouter un paiement',
             style: AppTextStyles.headline2,
           ),
           const Spacer(),
@@ -153,64 +139,37 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
     );
   }
 
-  Widget _buildDescriptionField() {
+  Widget _buildInvoiceDropdown() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Description',
+          'N° Facture',
           style: AppTextStyles.body1.copyWith(
             fontWeight: FontWeight.w600,
             color: AppColors.textPrimary,
           ),
         ),
         const SizedBox(height: 8),
-        TextFormField(
-          controller: _descriptionController,
-          decoration: _inputDecoration('Ex: Commande de fournitures dentaires'),
+        DropdownButtonFormField<int>(
+          value: _selectedInvoiceId,
+          decoration: _inputDecoration('Sélectionner une facture'),
+          items: widget.invoices.map((invoice) {
+            return DropdownMenuItem<int>(
+              value: invoice.id,
+              child: Text(
+                '${invoice.invoiceNumber} - ${invoice.patientName ?? "Patient inconnu"}',
+              ),
+            );
+          }).toList(),
+          onChanged: (value) => setState(() => _selectedInvoiceId = value),
           validator: (value) {
-            if (value == null || value.isEmpty) {
-              return 'La description est requise';
+            if (value == null) {
+              return 'Veuillez sélectionner une facture';
             }
             return null;
           },
         ),
-      ],
-    );
-  }
-
-  Widget _buildCategoryDropdown() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Catégorie',
-          style: AppTextStyles.body1.copyWith(
-            fontWeight: FontWeight.w600,
-            color: AppColors.textPrimary,
-          ),
-        ),
-        const SizedBox(height: 8),
-        _isLoadingCategories
-            ? const Center(child: CircularProgressIndicator())
-            : DropdownButtonFormField<int>(
-                value: _selectedCategoryId,
-                decoration: _inputDecoration('Sélectionner une catégorie'),
-                items: _categories.map((category) {
-                  return DropdownMenuItem(
-                    value: category.id,
-                    child: Text(category.name ?? ''),
-                  );
-                }).toList(),
-                onChanged: (value) =>
-                    setState(() => _selectedCategoryId = value),
-                validator: (value) {
-                  if (value == null) {
-                    return 'Veuillez sélectionner une catégorie';
-                  }
-                  return null;
-                },
-              ),
       ],
     );
   }
@@ -252,7 +211,7 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Date',
+          'Date de paiement',
           style: AppTextStyles.body1.copyWith(
             fontWeight: FontWeight.w600,
             color: AppColors.textPrimary,
@@ -284,6 +243,76 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
               ],
             ),
           ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMethodDropdown() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Méthode de paiement',
+          style: AppTextStyles.body1.copyWith(
+            fontWeight: FontWeight.w600,
+            color: AppColors.textPrimary,
+          ),
+        ),
+        const SizedBox(height: 8),
+        DropdownButtonFormField<String>(
+          value: _selectedMethod,
+          decoration: _inputDecoration('Sélectionner une méthode'),
+          items: _paymentMethods.map((method) {
+            return DropdownMenuItem(
+              value: method,
+              child: Text(_getMethodLabel(method)),
+            );
+          }).toList(),
+          onChanged: (value) => setState(() => _selectedMethod = value),
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Veuillez sélectionner une méthode';
+            }
+            return null;
+          },
+        ),
+      ],
+    );
+  }
+
+  String _getMethodLabel(String method) {
+    switch (method) {
+      case 'cash':
+        return 'Espèces';
+      case 'credit_card':
+        return 'Carte de crédit';
+      case 'debit_card':
+        return 'Carte de débit';
+      case 'bank_transfer':
+        return 'Virement bancaire';
+      case 'check':
+        return 'Chèque';
+      default:
+        return method;
+    }
+  }
+
+  Widget _buildReferenceField() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Référence (optionnel)',
+          style: AppTextStyles.body1.copyWith(
+            fontWeight: FontWeight.w600,
+            color: AppColors.textPrimary,
+          ),
+        ),
+        const SizedBox(height: 8),
+        TextFormField(
+          controller: _referenceController,
+          decoration: _inputDecoration('Ex: REF-12345'),
         ),
       ],
     );
@@ -345,14 +374,14 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
           ElevatedButton(
             onPressed: _handleSubmit,
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
+              backgroundColor: Colors.green,
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8),
               ),
             ),
             child: Text(
-              isEditing ? 'Modifier' : 'Ajouter',
+              isEditing ? 'Enregistrer' : 'Ajouter',
               style: AppTextStyles.body1.copyWith(
                 color: Colors.white,
                 fontWeight: FontWeight.w600,
@@ -392,16 +421,16 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
 
   void _handleSubmit() {
     if (_formKey.currentState!.validate()) {
-      final expense = {
-        'description': _descriptionController.text,
-        'categoryId': _selectedCategoryId,
-        'amount': double.parse(_amountController.text),
-        'date': _selectedDate.toString().split(' ')[0],
-        'paymentMethod': _selectedPaymentMethod,
+      final payment = {
+        'invoiceId': _selectedInvoiceId,
+        'amount': double.tryParse(_amountController.text) ?? 0.0,
+        'paymentDate': _selectedDate.toString().split(' ')[0],
+        'method': _selectedMethod,
+        'reference': _referenceController.text,
         'notes': _notesController.text,
       };
 
-      Navigator.of(context).pop(expense);
+      Navigator.of(context).pop(payment);
     }
   }
 }

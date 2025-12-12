@@ -64,10 +64,7 @@ class BillingStatusBadge extends StatelessWidget {
           'text': AppColors.statusCancelled,
         };
       default:
-        return {
-          'background': AppColors.border,
-          'text': AppColors.textSecondary,
-        };
+        return {'background': AppColors.border, 'text': Colors.grey[600]!};
     }
   }
 }

@@ -2,17 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:dentist_ms/core/constants/app_colors.dart';
 import 'package:dentist_ms/core/constants/app_text_styles.dart';
 
-class AddServiceDialog extends StatefulWidget {
-  final Map<String, dynamic>? service; // For editing existing service
+class AddTreatmentDialog extends StatefulWidget {
+  final Map<String, dynamic>? Treatment; // For editing existing Treatment
 
-  const AddServiceDialog({Key? key, this.service}) : super(key: key);
+  const AddTreatmentDialog({Key? key, this.Treatment}) : super(key: key);
 
   @override
-  State<AddServiceDialog> createState() => _AddServiceDialogState();
+  State<AddTreatmentDialog> createState() => _AddTreatmentDialogState();
 }
 
-class _AddServiceDialogState extends State<AddServiceDialog> {
+class _AddTreatmentDialogState extends State<AddTreatmentDialog> {
   final _formKey = GlobalKey<FormState>();
+  final _codeController = TextEditingController();
   final _nameController = TextEditingController();
   final _priceController = TextEditingController();
   final _descriptionController = TextEditingController();
@@ -20,15 +21,17 @@ class _AddServiceDialogState extends State<AddServiceDialog> {
   @override
   void initState() {
     super.initState();
-    if (widget.service != null) {
-      _nameController.text = widget.service!['name'] ?? '';
-      _priceController.text = widget.service!['price']?.toString() ?? '';
-      _descriptionController.text = widget.service!['description'] ?? '';
+    if (widget.Treatment != null) {
+      _codeController.text = widget.Treatment!['code'] ?? '';
+      _nameController.text = widget.Treatment!['name'] ?? '';
+      _priceController.text = widget.Treatment!['price']?.toString() ?? '';
+      _descriptionController.text = widget.Treatment!['description'] ?? '';
     }
   }
 
   @override
   void dispose() {
+    _codeController.dispose();
     _nameController.dispose();
     _priceController.dispose();
     _descriptionController.dispose();
@@ -38,7 +41,7 @@ class _AddServiceDialogState extends State<AddServiceDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final isEditing = widget.service != null;
+    final isEditing = widget.Treatment != null;
 
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -59,6 +62,8 @@ class _AddServiceDialogState extends State<AddServiceDialog> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        _buildCodeField(),
+                        const SizedBox(height: 16),
                         _buildNameField(),
                         const SizedBox(height: 16),
                         _buildPriceField(),
@@ -104,7 +109,7 @@ class _AddServiceDialogState extends State<AddServiceDialog> {
           ),
           const SizedBox(width: 12),
           Text(
-            isEditing ? 'Modifier le service' : 'Ajouter un service',
+            isEditing ? 'Modifier le Treatment' : 'Ajouter un Treatment',
             style: AppTextStyles.headline2,
           ),
           const Spacer(),
@@ -118,12 +123,38 @@ class _AddServiceDialogState extends State<AddServiceDialog> {
     );
   }
 
+  Widget _buildCodeField() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Code',
+          style: AppTextStyles.body1.copyWith(
+            fontWeight: FontWeight.w600,
+            color: AppColors.textPrimary,
+          ),
+        ),
+        const SizedBox(height: 8),
+        TextFormField(
+          controller: _codeController,
+          decoration: _inputDecoration('Ex: NET, PLO, TRC'),
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Le code est requis';
+            }
+            return null;
+          },
+        ),
+      ],
+    );
+  }
+
   Widget _buildNameField() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Nom du service',
+          'Nom du traitement',
           style: AppTextStyles.body1.copyWith(
             fontWeight: FontWeight.w600,
             color: AppColors.textPrimary,
@@ -135,7 +166,7 @@ class _AddServiceDialogState extends State<AddServiceDialog> {
           decoration: _inputDecoration('Ex: Nettoyage dentaire'),
           validator: (value) {
             if (value == null || value.isEmpty) {
-              return 'Le nom du service est requis';
+              return 'Le nom du traitement est requis';
             }
             return null;
           },
@@ -190,7 +221,7 @@ class _AddServiceDialogState extends State<AddServiceDialog> {
         const SizedBox(height: 8),
         TextFormField(
           controller: _descriptionController,
-          decoration: _inputDecoration('Description du service...'),
+          decoration: _inputDecoration('Description du Treatment...'),
           maxLines: 3,
         ),
       ],
@@ -279,15 +310,14 @@ class _AddServiceDialogState extends State<AddServiceDialog> {
 
   void _handleSubmit() {
     if (_formKey.currentState!.validate()) {
-      final service = {
+      final Treatment = {
+        'code': _codeController.text,
         'name': _nameController.text,
-
         'price': double.parse(_priceController.text),
-
         'description': _descriptionController.text,
       };
 
-      Navigator.of(context).pop(service);
+      Navigator.of(context).pop(Treatment);
     }
   }
 }
