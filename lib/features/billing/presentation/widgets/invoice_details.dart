@@ -12,10 +12,12 @@ import 'package:dentist_ms/features/billing/bloc/invoice_item_event.dart';
 import 'package:dentist_ms/features/billing/bloc/invoice_item_state.dart';
 import 'package:dentist_ms/features/billing/repositories/invoice_item_repository.dart';
 import 'package:dentist_ms/features/billing/repositories/invoice_repository.dart';
+import 'package:dentist_ms/features/billing/repositories/payment_repository.dart';
 import 'package:intl/intl.dart';
 import '../dialogs/add_invoice_item.dart';
 import 'package:dentist_ms/features/billing/data/invoice_remote.dart';
 import 'package:dentist_ms/features/billing/data/invoice_item_remote.dart';
+import 'package:dentist_ms/features/billing/data/payment_remote.dart';
 
 class InvoiceDetailScreenWrapper extends StatelessWidget {
   final int invoiceId;
@@ -39,6 +41,9 @@ class InvoiceDetailScreenWrapper extends StatelessWidget {
               remote: InvoiceItemRemoteDataSource(),
             ),
             invoiceDataSource: InvoiceRemoteDataSource(),
+            paymentRepository: SupabasePaymentRepository(
+              remote: PaymentRemoteDataSource(),
+            ),
           ),
         ),
       ],
@@ -86,56 +91,49 @@ class _InvoiceDetailScreenState extends State<InvoiceDetailScreen> {
           'Détails de la facture',
           style: AppTextStyles.headline2.copyWith(color: AppColors.textPrimary),
         ),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.edit, color: AppColors.primary),
-            onPressed: () {
-              // TODO: Implement edit invoice
-            },
-          ),
-          IconButton(
-            icon: Icon(Icons.print, color: AppColors.primary),
-            onPressed: () {
-              // TODO: Implement print invoice
-            },
-          ),
-          const SizedBox(width: 8),
-        ],
       ),
-      body: BlocBuilder<InvoiceBloc, InvoiceState>(
-        builder: (context, invoiceState) {
-          if (invoiceState is InvoicesLoadInProgress) {
-            return const Center(child: CircularProgressIndicator());
+      body: BlocListener<InvoiceItemBloc, InvoiceItemState>(
+        listener: (context, state) {
+          // Reload invoice whenever invoice items change to get updated totals and status
+          if (state is InvoiceItemsLoadSuccess) {
+            context.read<InvoiceBloc>().add(LoadInvoiceById(widget.invoiceId));
           }
+        },
+        child: BlocBuilder<InvoiceBloc, InvoiceState>(
+          builder: (context, invoiceState) {
+            if (invoiceState is InvoicesLoadInProgress) {
+              return const Center(child: CircularProgressIndicator());
+            }
 
-          if (invoiceState is InvoicesOperationFailure) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.error_outline,
-                    size: 48,
-                    color: AppColors.statusCancelled,
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Erreur: ${invoiceState.message}',
-                    style: AppTextStyles.body1.copyWith(
+            if (invoiceState is InvoicesOperationFailure) {
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.error_outline,
+                      size: 48,
                       color: AppColors.statusCancelled,
                     ),
-                  ),
-                ],
-              ),
-            );
-          }
+                    const SizedBox(height: 16),
+                    Text(
+                      'Erreur: ${invoiceState.message}',
+                      style: AppTextStyles.body1.copyWith(
+                        color: AppColors.statusCancelled,
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }
 
-          if (invoiceState is InvoiceLoadSuccess) {
-            return _buildContent(invoiceState.invoice);
-          }
+            if (invoiceState is InvoiceLoadSuccess) {
+              return _buildContent(invoiceState.invoice);
+            }
 
-          return const Center(child: Text('Aucune donnée'));
-        },
+            return const Center(child: Text('Aucune donnée'));
+          },
+        ),
       ),
     );
   }
@@ -235,7 +233,6 @@ class _InvoiceDetailScreenState extends State<InvoiceDetailScreen> {
           const SizedBox(height: 16),
           _buildInfoRow('Date de début', _formatDate(invoice.startDate)),
           _buildInfoRow('Date d\'échéance', _formatDate(invoice.dueDate)),
-          _buildInfoRow('Traitement', invoice.treatmentName ?? '-'),
           if (invoice.notes != null && invoice.notes!.isNotEmpty)
             _buildInfoRow('Notes', invoice.notes ?? '-'),
         ],
@@ -548,13 +545,7 @@ class _InvoiceDetailScreenState extends State<InvoiceDetailScreen> {
       );
 
       context.read<InvoiceItemBloc>().add(AddInvoiceItem(item));
-
-      // Reload invoice to get updated totals
-      Future.delayed(const Duration(milliseconds: 500), () {
-        if (mounted) {
-          _loadData();
-        }
-      });
+      // Invoice will be automatically reloaded via BlocListener when item is added
     }
   }
 
@@ -582,13 +573,7 @@ class _InvoiceDetailScreenState extends State<InvoiceDetailScreen> {
 
     if (confirm == true && mounted) {
       context.read<InvoiceItemBloc>().add(DeleteInvoiceItem(item.id!));
-
-      // Reload invoice to get updated totals
-      Future.delayed(const Duration(milliseconds: 500), () {
-        if (mounted) {
-          _loadData();
-        }
-      });
+      // Invoice will be automatically reloaded via BlocListener when item is deleted
     }
   }
 

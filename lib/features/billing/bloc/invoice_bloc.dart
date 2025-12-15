@@ -2,8 +2,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:dentist_ms/features/billing/bloc/invoice_event.dart';
 import 'package:dentist_ms/features/billing/bloc/invoice_state.dart';
 import 'package:dentist_ms/features/billing/repositories/invoice_repository.dart';
-import 'package:dentist_ms/features/billing/data/invoice_item_remote.dart';
-import 'package:dentist_ms/features/billing/models/invoice_item.dart';
 
 class InvoiceBloc extends Bloc<InvoiceEvent, InvoiceState> {
   final InvoiceRepository repository;
@@ -62,22 +60,7 @@ class InvoiceBloc extends Bloc<InvoiceEvent, InvoiceState> {
   ) async {
     emit(InvoicesLoadInProgress());
     try {
-      final createdInvoice = await repository.createInvoice(event.invoice);
-
-      // If treatmentId is provided, create an invoice_item
-      if (event.treatmentId != null && createdInvoice.id != null) {
-        final invoiceItemDataSource = InvoiceItemRemoteDataSource();
-        final invoiceItem = InvoiceItem(
-          invoiceId: createdInvoice.id,
-          treatmentId: event.treatmentId,
-          description: 'Treatment',
-          quantity: 1.0,
-          unitPrice: event.treatmentPrice ?? 0.0,
-          totalPrice: event.treatmentPrice ?? 0.0,
-        );
-        await invoiceItemDataSource.addInvoiceItem(invoiceItem);
-      }
-
+      await repository.createInvoice(event.invoice);
       // Reload the list directly instead of dispatching another event
       final invoices = await repository.getAllInvoices();
       emit(InvoicesLoadSuccess(invoices));

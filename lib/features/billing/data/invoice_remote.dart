@@ -15,10 +15,7 @@ class InvoiceRemoteDataSource {
           .from('invoices')
           .select('''
             *,
-            patients(first_name, last_name),
-            invoice_items(
-              treatments(name)
-            )
+            patients(first_name, last_name)
           ''')
           .order('created_at', ascending: false);
 
@@ -37,10 +34,7 @@ class InvoiceRemoteDataSource {
           .from('invoices')
           .select('''
             *,
-            patients(first_name, last_name),
-            invoice_items(
-              treatments(name)
-            )
+            patients(first_name, last_name)
           ''')
           .eq('patient_id', patientId)
           .order('created_at', ascending: false);
@@ -60,10 +54,7 @@ class InvoiceRemoteDataSource {
           .from('invoices')
           .select('''
             *,
-            patients(first_name, last_name),
-            invoice_items(
-              treatments(name)
-            )
+            patients(first_name, last_name)
           ''')
           .eq('id', id)
           .single();
@@ -82,10 +73,7 @@ class InvoiceRemoteDataSource {
           .insert(invoice.toJson())
           .select('''
             *,
-            patients(first_name, last_name),
-            invoice_items(
-              treatments(name)
-            )
+            patients(first_name, last_name)
           ''')
           .single();
 
@@ -104,10 +92,7 @@ class InvoiceRemoteDataSource {
           .eq('id', invoice.id!)
           .select('''
             *,
-            patients(first_name, last_name),
-            invoice_items(
-              treatments(name)
-            )
+            patients(first_name, last_name)
           ''')
           .single();
 

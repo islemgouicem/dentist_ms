@@ -66,6 +66,9 @@ class BillingsPageWrapper extends StatelessWidget {
             repository: SupabaseInvoiceItemRepository(
               remote: InvoiceItemRemoteDataSource(),
             ),
+            paymentRepository: SupabasePaymentRepository(
+              remote: PaymentRemoteDataSource(),
+            ),
           )..add(LoadInvoiceItems()),
         ),
         BlocProvider(
@@ -269,7 +272,7 @@ class _BillingsPageState extends State<BillingsPage>
         ),
         tabs: const [
           Tab(text: 'Factures'),
-          Tab(text: 'Catalogue de Treatments'),
+          Tab(text: 'Catalogue de Traitements'),
           Tab(text: 'Dépenses'),
           Tab(text: 'Historique des paiements'),
         ],

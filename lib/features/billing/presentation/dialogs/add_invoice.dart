@@ -3,8 +3,6 @@ import 'package:dentist_ms/core/constants/app_colors.dart';
 import 'package:dentist_ms/core/constants/app_text_styles.dart';
 import 'package:dentist_ms/features/patients/models/patient.dart';
 import 'package:dentist_ms/features/patients/data/patient_remote.dart';
-import 'package:dentist_ms/features/billing/models/treatment.dart';
-import 'package:dentist_ms/features/billing/data/treatment_remote.dart';
 
 class AddInvoiceDialog extends StatefulWidget {
   const AddInvoiceDialog({Key? key}) : super(key: key);
@@ -16,25 +14,19 @@ class AddInvoiceDialog extends StatefulWidget {
 class _AddInvoiceDialogState extends State<AddInvoiceDialog> {
   final _formKey = GlobalKey<FormState>();
   final _invoiceNumberController = TextEditingController();
-  final _amountController = TextEditingController();
+  final _discountController = TextEditingController(text: '0.00');
   final _notesController = TextEditingController();
 
   int? _selectedPatientId;
-  int? _selectedTreatmentId;
   DateTime _selectedDate = DateTime.now();
-  String _selectedStatus = 'unpaid';
 
   List<Patient> _patients = [];
   bool _isLoadingPatients = true;
-
-  List<Treatment> _treatments = [];
-  bool _isLoadingTreatments = true;
 
   @override
   void initState() {
     super.initState();
     _loadPatients();
-    _loadTreatments();
   }
 
   Future<void> _loadPatients() async {
@@ -57,31 +49,10 @@ class _AddInvoiceDialogState extends State<AddInvoiceDialog> {
     }
   }
 
-  Future<void> _loadTreatments() async {
-    try {
-      final dataSource = TreatmentRemoteDataSource();
-      final treatments = await dataSource.getTreatments();
-      setState(() {
-        _treatments = treatments;
-        _isLoadingTreatments = false;
-      });
-    } catch (e) {
-      setState(() {
-        _isLoadingTreatments = false;
-      });
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur de chargement des traitements: $e')),
-        );
-      }
-    }
-  }
-
   @override
   void dispose() {
     _invoiceNumberController.dispose();
-    _amountController.dispose();
-
+    _discountController.dispose();
     _notesController.dispose();
     super.dispose();
   }
@@ -112,12 +83,8 @@ class _AddInvoiceDialogState extends State<AddInvoiceDialog> {
                         _buildPatientDropdown(),
                         const SizedBox(height: 16),
                         _buildDatePicker(),
-
                         const SizedBox(height: 16),
-                        _buildAmountField(),
-
-                        const SizedBox(height: 16),
-                        _buildStatusDropdown(),
+                        _buildDiscountField(),
                         const SizedBox(height: 16),
                         _buildNotesField(),
                       ],
@@ -239,7 +206,7 @@ class _AddInvoiceDialogState extends State<AddInvoiceDialog> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Date',
+          'Date de début',
           style: AppTextStyles.body1.copyWith(
             fontWeight: FontWeight.w600,
             color: AppColors.textPrimary,
@@ -276,12 +243,12 @@ class _AddInvoiceDialogState extends State<AddInvoiceDialog> {
     );
   }
 
-  Widget _buildAmountField() {
+  Widget _buildDiscountField() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Montant total',
+          'Remise (optionnel)',
           style: AppTextStyles.body1.copyWith(
             fontWeight: FontWeight.w600,
             color: AppColors.textPrimary,
@@ -289,46 +256,19 @@ class _AddInvoiceDialogState extends State<AddInvoiceDialog> {
         ),
         const SizedBox(height: 8),
         TextFormField(
-          controller: _amountController,
+          controller: _discountController,
           decoration: _inputDecoration(
             '0.00',
           ).copyWith(prefixText: '\$ ', prefixStyle: AppTextStyles.body1),
           keyboardType: TextInputType.number,
           validator: (value) {
-            if (value == null || value.isEmpty) {
-              return 'Le montant est requis';
-            }
-            if (double.tryParse(value) == null) {
-              return 'Veuillez entrer un montant valide';
+            if (value != null && value.isNotEmpty) {
+              if (double.tryParse(value) == null) {
+                return 'Veuillez entrer un montant valide';
+              }
             }
             return null;
           },
-        ),
-      ],
-    );
-  }
-
-  Widget _buildStatusDropdown() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Statut',
-          style: AppTextStyles.body1.copyWith(
-            fontWeight: FontWeight.w600,
-            color: AppColors.textPrimary,
-          ),
-        ),
-        const SizedBox(height: 8),
-        DropdownButtonFormField<String>(
-          value: _selectedStatus,
-          decoration: _inputDecoration('Sélectionner un statut'),
-          items: const [
-            DropdownMenuItem(value: 'paid', child: Text('Payé')),
-            DropdownMenuItem(value: 'partial', child: Text('Partiel')),
-            DropdownMenuItem(value: 'unpaid', child: Text('Non payé')),
-          ],
-          onChanged: (value) => setState(() => _selectedStatus = value!),
         ),
       ],
     );
@@ -437,15 +377,17 @@ class _AddInvoiceDialogState extends State<AddInvoiceDialog> {
 
   void _handleSubmit() {
     if (_formKey.currentState!.validate()) {
-      // Create invoice object
+      // Parse discount amount, default to 0 if empty
+      final discountText = _discountController.text.trim();
+      final discount = discountText.isEmpty ? 0.0 : double.parse(discountText);
+
+      // Create invoice object with default status 'unpaid'
       final invoice = {
         'invoiceNumber': _invoiceNumberController.text,
         'patientId': _selectedPatientId,
-        'treatmentId': _selectedTreatmentId,
-        'date': _selectedDate.toString().split(' ')[0],
-        'amount': double.parse(_amountController.text),
-
-        'status': _selectedStatus,
+        'startDate': _selectedDate.toString().split(' ')[0],
+        'discount': discount,
+        'status': 'unpaid',
         'notes': _notesController.text,
       };
 

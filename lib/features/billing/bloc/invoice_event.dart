@@ -28,13 +28,11 @@ class LoadInvoiceById extends InvoiceEvent {
 
 class AddInvoice extends InvoiceEvent {
   final Invoice invoice;
-  final int? treatmentId;
-  final double? treatmentPrice;
 
-  const AddInvoice(this.invoice, {this.treatmentId, this.treatmentPrice});
+  const AddInvoice(this.invoice);
 
   @override
-  List<Object?> get props => [invoice, treatmentId, treatmentPrice];
+  List<Object?> get props => [invoice];
 }
 
 class UpdateInvoice extends InvoiceEvent {

@@ -2,16 +2,23 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:dentist_ms/features/billing/bloc/invoice_item_event.dart';
 import 'package:dentist_ms/features/billing/bloc/invoice_item_state.dart';
 import 'package:dentist_ms/features/billing/repositories/invoice_item_repository.dart';
+import 'package:dentist_ms/features/billing/repositories/payment_repository.dart';
 import 'package:dentist_ms/features/billing/data/invoice_remote.dart';
+import 'package:dentist_ms/features/billing/data/payment_remote.dart';
 
 class InvoiceItemBloc extends Bloc<InvoiceItemEvent, InvoiceItemState> {
   final InvoiceItemRepository repository;
   final InvoiceRemoteDataSource invoiceDataSource;
+  final PaymentRepository paymentRepository;
 
   InvoiceItemBloc({
     required this.repository,
     InvoiceRemoteDataSource? invoiceDataSource,
+    PaymentRepository? paymentRepository,
   }) : invoiceDataSource = invoiceDataSource ?? InvoiceRemoteDataSource(),
+       paymentRepository =
+           paymentRepository ??
+           SupabasePaymentRepository(remote: PaymentRemoteDataSource()),
        super(InvoiceItemsInitial()) {
     on<LoadInvoiceItems>(_onLoadInvoiceItems);
     on<LoadInvoiceItemsByInvoice>(_onLoadInvoiceItemsByInvoice);
@@ -19,6 +26,55 @@ class InvoiceItemBloc extends Bloc<InvoiceItemEvent, InvoiceItemState> {
     on<AddInvoiceItem>(_onAddInvoiceItem);
     on<UpdateInvoiceItem>(_onUpdateInvoiceItem);
     on<DeleteInvoiceItem>(_onDeleteInvoiceItem);
+  }
+
+  /// Recalculate invoice totals and update status in a single operation
+  Future<void> _recalculateInvoiceTotalsAndStatus(int invoiceId) async {
+    try {
+      // Get all items for this invoice
+      final items = await repository.getInvoiceItemsByInvoiceId(invoiceId);
+
+      // Calculate subtotal from all items
+      final subtotal = items.fold<double>(
+        0.0,
+        (sum, item) => sum + (item.totalPrice ?? 0.0),
+      );
+
+      // Get current invoice to preserve discount
+      final invoice = await invoiceDataSource.getInvoiceById(invoiceId);
+      final discount = invoice.discountAmount ?? 0.0;
+
+      // Calculate total
+      final total = subtotal - discount;
+
+      // Get all payments to determine status
+      final payments = await paymentRepository.getPaymentsByInvoiceId(invoiceId);
+      final totalPaid = payments.fold<double>(
+        0.0,
+        (sum, payment) => sum + (payment.amount ?? 0.0),
+      );
+
+      // Determine new status based on payments vs new total
+      String newStatus;
+      if (totalPaid <= 0) {
+        newStatus = 'unpaid';
+      } else if (totalPaid >= total) {
+        newStatus = 'paid';
+      } else {
+        newStatus = 'partial';
+      }
+
+      // Update invoice with new totals and status in one go
+      final updatedInvoice = invoice.copyWith(
+        subtotalAmount: subtotal,
+        totalAmount: total,
+        status: newStatus,
+      );
+
+      await invoiceDataSource.updateInvoice(updatedInvoice);
+    } catch (e) {
+      print('Warning: Failed to recalculate invoice totals and status: $e');
+    }
   }
 
   Future<void> _onLoadInvoiceItems(
@@ -68,12 +124,11 @@ class InvoiceItemBloc extends Bloc<InvoiceItemEvent, InvoiceItemState> {
   ) async {
     emit(InvoiceItemsLoadInProgress());
     try {
-      final createdItem = await repository.createInvoiceItem(event.item);
+      await repository.createInvoiceItem(event.item);
 
-      // Trigger automatic recalculation via database trigger
-      // The trigger will handle this, but we can also call it explicitly
+      // Recalculate invoice totals and update status in one operation
       if (event.item.invoiceId != null) {
-        await invoiceDataSource.recalculateInvoiceTotals(event.item.invoiceId!);
+        await _recalculateInvoiceTotalsAndStatus(event.item.invoiceId!);
       }
 
       // Reload the list for the specific invoice
@@ -99,9 +154,9 @@ class InvoiceItemBloc extends Bloc<InvoiceItemEvent, InvoiceItemState> {
     try {
       await repository.updateInvoiceItem(event.item);
 
-      // Trigger recalculation
+      // Recalculate invoice totals and update status in one operation
       if (event.item.invoiceId != null) {
-        await invoiceDataSource.recalculateInvoiceTotals(event.item.invoiceId!);
+        await _recalculateInvoiceTotalsAndStatus(event.item.invoiceId!);
       }
 
       // Reload the list
@@ -132,9 +187,9 @@ class InvoiceItemBloc extends Bloc<InvoiceItemEvent, InvoiceItemState> {
       // Delete the item
       await repository.deleteInvoiceItem(event.itemId);
 
-      // Trigger recalculation
+      // Recalculate invoice totals and update status in one operation
       if (invoiceId != null) {
-        await invoiceDataSource.recalculateInvoiceTotals(invoiceId);
+        await _recalculateInvoiceTotalsAndStatus(invoiceId);
       }
 
       // Reload the list

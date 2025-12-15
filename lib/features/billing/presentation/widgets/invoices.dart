@@ -123,14 +123,7 @@ class InvoiceTable extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BillingTableWrapper(
-      headers: [
-        'N° Facture',
-        'Patient',
-        'Date',
-        'Traitement',
-        'Montant',
-        'Statut',
-      ],
+      headers: ['N° Facture', 'Patient', 'Date', 'Montant', 'Statut'],
       rows: _buildRows(context),
     );
   }
@@ -172,11 +165,6 @@ class InvoiceTable extends StatelessWidget {
             Text(
               _formatDate(invoice.startDate),
               style: AppTextStyles.body1.copyWith(color: AppColors.textPrimary),
-            ),
-            Text(
-              invoice.treatmentName ?? '-',
-              style: AppTextStyles.body1.copyWith(color: AppColors.textPrimary),
-              overflow: TextOverflow.ellipsis,
             ),
             Text(
               '\$${totalAmount.toStringAsFixed(0)}',
@@ -235,11 +223,11 @@ class InvoiceTable extends StatelessWidget {
   String _getStatusText(String status) {
     switch (status.toLowerCase()) {
       case 'paid':
-        return 'Payé';
+        return 'payé';
       case 'partial':
-        return 'En attente';
+        return 'Partiel';
       case 'unpaid':
-        return 'En retard';
+        return 'Impayé';
       default:
         return status;
     }

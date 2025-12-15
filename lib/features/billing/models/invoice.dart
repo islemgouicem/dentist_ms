@@ -5,7 +5,6 @@ class Invoice extends Equatable {
   final String? invoiceNumber;
   final int? patientId;
   final String? patientName;
-  final String? treatmentName;
   final String? status;
   final DateTime? startDate;
   final DateTime? dueDate;
@@ -21,7 +20,6 @@ class Invoice extends Equatable {
     this.invoiceNumber,
     this.patientId,
     this.patientName,
-    this.treatmentName,
     this.status,
     this.startDate,
     this.dueDate,
@@ -45,25 +43,11 @@ class Invoice extends Equatable {
       if (patientName.isEmpty) patientName = null;
     }
 
-    // Parse treatment name from nested invoice_items and treatments
-    String? treatmentName;
-    if (json['invoice_items'] != null) {
-      final items = json['invoice_items'];
-      if (items is List && items.isNotEmpty) {
-        final firstItem = items[0] as Map<String, dynamic>;
-        if (firstItem['treatments'] != null) {
-          final treatment = firstItem['treatments'] as Map<String, dynamic>;
-          treatmentName = treatment['name'] as String?;
-        }
-      }
-    }
-
     return Invoice(
       id: json['id'] as int?,
       invoiceNumber: json['invoice_number'] as String?,
       patientId: json['patient_id'] as int?,
       patientName: patientName,
-      treatmentName: treatmentName,
       status: json['status'] as String?,
       startDate: json['start_date'] != null
           ? DateTime.tryParse(json['start_date'].toString())
