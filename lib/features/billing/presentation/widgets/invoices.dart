@@ -6,6 +6,7 @@ import 'status_badge.dart';
 import 'table_wrapper.dart';
 import '../../utils/billing_responsive_helper.dart';
 import '../../models/invoice.dart';
+import 'invoice_details.dart';
 
 class BillingTableControls extends StatelessWidget {
   final BillingResponsiveHelper responsive;
@@ -130,11 +131,11 @@ class InvoiceTable extends StatelessWidget {
         'Montant',
         'Statut',
       ],
-      rows: _buildRows(),
+      rows: _buildRows(context),
     );
   }
 
-  List<Widget> _buildRows() {
+  List<Widget> _buildRows(BuildContext context) {
     return invoices.asMap().entries.map((entry) {
       final index = entry.key;
       final invoice = entry.value;
@@ -143,39 +144,50 @@ class InvoiceTable extends StatelessWidget {
       final status = invoice.status ?? '';
       final totalAmount = invoice.totalAmount ?? 0.0;
 
-      return BillingTableRow(
-        isLast: isLast,
-        cells: [
-          Text(
-            invoice.invoiceNumber ?? '',
-            style: AppTextStyles.body1.copyWith(
-              fontWeight: FontWeight.w600,
-              color: AppColors.textPrimary,
+      return InkWell(
+        onTap: () {
+          if (invoice.id != null) {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) =>
+                    InvoiceDetailScreenWrapper(invoiceId: invoice.id!),
+              ),
+            );
+          }
+        },
+        child: BillingTableRow(
+          isLast: isLast,
+          cells: [
+            Text(
+              invoice.invoiceNumber ?? '',
+              style: AppTextStyles.body1.copyWith(
+                fontWeight: FontWeight.w600,
+                color: AppColors.primary,
+              ),
             ),
-          ),
-          Text(
-            invoice.patientName ?? '-',
-            style: AppTextStyles.body1.copyWith(color: AppColors.textPrimary),
-          ),
-          Text(
-            _formatDate(invoice.startDate),
-            style: AppTextStyles.body1.copyWith(color: AppColors.textPrimary),
-          ),
-          Text(
-            invoice.treatmentName ?? '-',
-            style: AppTextStyles.body1.copyWith(color: AppColors.textPrimary),
-            overflow: TextOverflow.ellipsis,
-          ),
-          Text(
-            '\$${totalAmount.toStringAsFixed(0)}',
-            style: AppTextStyles.body1.copyWith(
-              fontWeight: FontWeight.w600,
-              color: AppColors.textPrimary,
+            Text(
+              invoice.patientName ?? '-',
+              style: AppTextStyles.body1.copyWith(color: AppColors.textPrimary),
             ),
-          ),
-
-          Center(child: _buildStatusBadge(status)),
-        ],
+            Text(
+              _formatDate(invoice.startDate),
+              style: AppTextStyles.body1.copyWith(color: AppColors.textPrimary),
+            ),
+            Text(
+              invoice.treatmentName ?? '-',
+              style: AppTextStyles.body1.copyWith(color: AppColors.textPrimary),
+              overflow: TextOverflow.ellipsis,
+            ),
+            Text(
+              '\$${totalAmount.toStringAsFixed(0)}',
+              style: AppTextStyles.body1.copyWith(
+                fontWeight: FontWeight.w600,
+                color: AppColors.textPrimary,
+              ),
+            ),
+            Center(child: _buildStatusBadge(status)),
+          ],
+        ),
       );
     }).toList();
   }

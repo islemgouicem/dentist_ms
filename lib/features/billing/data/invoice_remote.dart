@@ -8,81 +8,110 @@ class InvoiceRemoteDataSource {
   InvoiceRemoteDataSource({SupabaseClient? client})
     : _client = client ?? Supabase.instance.client;
 
-  /// Fetch all invoices ordered by creation date
+  /// Get all invoices with patient and treatment information
   Future<List<Invoice>> getInvoices() async {
     try {
       final response = await _client
           .from('invoices')
-          .select(
-            '*, patients(first_name, last_name), invoice_items(treatments(name))',
-          )
+          .select('''
+            *,
+            patients(first_name, last_name),
+            invoice_items(
+              treatments(name)
+            )
+          ''')
           .order('created_at', ascending: false);
 
-      return (response as List).map((json) => Invoice.fromJson(json)).toList();
+      return (response as List)
+          .map((json) => Invoice.fromJson(json as Map<String, dynamic>))
+          .toList();
     } catch (e) {
-      throw Exception('Failed to load invoices: $e');
+      throw Exception('Failed to fetch invoices: $e');
     }
   }
 
-  /// Fetch invoices by patient ID
+  /// Get invoices for a specific patient
   Future<List<Invoice>> getInvoicesByPatientId(int patientId) async {
     try {
       final response = await _client
           .from('invoices')
-          .select()
+          .select('''
+            *,
+            patients(first_name, last_name),
+            invoice_items(
+              treatments(name)
+            )
+          ''')
           .eq('patient_id', patientId)
           .order('created_at', ascending: false);
 
-      return (response as List).map((json) => Invoice.fromJson(json)).toList();
+      return (response as List)
+          .map((json) => Invoice.fromJson(json as Map<String, dynamic>))
+          .toList();
     } catch (e) {
-      throw Exception('Failed to load invoices for patient: $e');
+      throw Exception('Failed to fetch patient invoices: $e');
     }
   }
 
-  /// Fetch a single invoice by ID
+  /// Get a specific invoice by ID
   Future<Invoice> getInvoiceById(int id) async {
     try {
       final response = await _client
           .from('invoices')
-          .select()
+          .select('''
+            *,
+            patients(first_name, last_name),
+            invoice_items(
+              treatments(name)
+            )
+          ''')
           .eq('id', id)
           .single();
 
-      return Invoice.fromJson(response);
+      return Invoice.fromJson(response as Map<String, dynamic>);
     } catch (e) {
-      throw Exception('Failed to load invoice: $e');
+      throw Exception('Failed to fetch invoice: $e');
     }
   }
 
-  /// Add a new invoice
+  /// Create a new invoice
   Future<Invoice> addInvoice(Invoice invoice) async {
     try {
       final response = await _client
           .from('invoices')
           .insert(invoice.toJson())
-          .select()
+          .select('''
+            *,
+            patients(first_name, last_name),
+            invoice_items(
+              treatments(name)
+            )
+          ''')
           .single();
 
-      return Invoice.fromJson(response);
+      return Invoice.fromJson(response as Map<String, dynamic>);
     } catch (e) {
-      throw Exception('Failed to add invoice: $e');
+      throw Exception('Failed to create invoice: $e');
     }
   }
 
   /// Update an existing invoice
   Future<Invoice> updateInvoice(Invoice invoice) async {
-    if (invoice.id == null)
-      throw Exception('Invoice ID is required for update');
-
     try {
       final response = await _client
           .from('invoices')
           .update(invoice.toJson())
           .eq('id', invoice.id!)
-          .select()
+          .select('''
+            *,
+            patients(first_name, last_name),
+            invoice_items(
+              treatments(name)
+            )
+          ''')
           .single();
 
-      return Invoice.fromJson(response);
+      return Invoice.fromJson(response as Map<String, dynamic>);
     } catch (e) {
       throw Exception('Failed to update invoice: $e');
     }
@@ -94,6 +123,19 @@ class InvoiceRemoteDataSource {
       await _client.from('invoices').delete().eq('id', id);
     } catch (e) {
       throw Exception('Failed to delete invoice: $e');
+    }
+  }
+
+  /// Recalculate invoice totals from invoice items
+  /// This calls the Supabase RPC function
+  Future<void> recalculateInvoiceTotals(int invoiceId) async {
+    try {
+      await _client.rpc(
+        'recalculate_invoice_totals',
+        params: {'p_invoice_id': invoiceId},
+      );
+    } catch (e) {
+      throw Exception('Failed to recalculate invoice totals: $e');
     }
   }
 }

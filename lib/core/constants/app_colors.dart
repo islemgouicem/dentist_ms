@@ -67,6 +67,7 @@ class AppColors {
 
   static Color? get textFieldBackground => null;
 }
+
 const kBg = Color(0xFFF4F7FB);
 const kSurface = Colors.white;
 const kTextPrimary = Color(0xFF0D1B2A);
