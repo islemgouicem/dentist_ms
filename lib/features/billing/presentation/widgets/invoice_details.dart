@@ -94,7 +94,7 @@ class _InvoiceDetailScreenState extends State<InvoiceDetailScreen> {
       ),
       body: BlocListener<InvoiceItemBloc, InvoiceItemState>(
         listener: (context, state) {
-          // Reload invoice whenever invoice items change to get updated totals and status
+          // Reload invoice whenever invoice items change to get updated totals
           if (state is InvoiceItemsLoadSuccess) {
             context.read<InvoiceBloc>().add(LoadInvoiceById(widget.invoiceId));
           }
@@ -387,7 +387,7 @@ class _InvoiceDetailScreenState extends State<InvoiceDetailScreen> {
             border: Border(bottom: BorderSide(color: AppColors.border)),
           ),
           children: [
-            _buildTableHeader('Description'),
+            _buildTableHeader('Traitement'),
             _buildTableHeader('Qté'),
             _buildTableHeader('Prix unitaire'),
             _buildTableHeader('Total'),
@@ -424,7 +424,7 @@ class _InvoiceDetailScreenState extends State<InvoiceDetailScreen> {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
           child: Text(
-            item.description ?? '-',
+            item.treatmentName ?? '-',
             style: AppTextStyles.body1.copyWith(color: AppColors.textPrimary),
           ),
         ),
@@ -538,7 +538,8 @@ class _InvoiceDetailScreenState extends State<InvoiceDetailScreen> {
       final item = InvoiceItem(
         invoiceId: invoice.id,
         treatmentId: result['treatmentId'],
-        description: result['description'],
+        treatmentName: result['treatmentName'], // For display only
+        description: result['description'], // Store in database
         quantity: result['quantity'],
         unitPrice: result['unitPrice'],
         totalPrice: result['totalPrice'],

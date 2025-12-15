@@ -7,7 +7,8 @@ import 'package:dentist_ms/features/billing/data/treatment_remote.dart';
 class AddInvoiceItemDialog extends StatefulWidget {
   final int invoiceId;
 
-  const AddInvoiceItemDialog({Key? key, required this.invoiceId}) : super(key: key);
+  const AddInvoiceItemDialog({Key? key, required this.invoiceId})
+    : super(key: key);
 
   @override
   State<AddInvoiceItemDialog> createState() => _AddInvoiceItemDialogState();
@@ -134,7 +135,11 @@ class _AddInvoiceItemDialogState extends State<AddInvoiceItemDialog> {
               color: AppColors.primary.withOpacity(0.1),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: Icon(Icons.add_shopping_cart, color: AppColors.primary, size: 24),
+            child: Icon(
+              Icons.add_shopping_cart,
+              color: AppColors.primary,
+              size: 24,
+            ),
           ),
           const SizedBox(width: 12),
           Text('Ajouter un article', style: AppTextStyles.headline2),
@@ -175,10 +180,13 @@ class _AddInvoiceItemDialogState extends State<AddInvoiceItemDialog> {
                 onChanged: (value) {
                   setState(() => _selectedTreatmentId = value);
                   if (value != null) {
-                    final treatment = _treatments.firstWhere((t) => t.id == value);
+                    final treatment = _treatments.firstWhere(
+                      (t) => t.id == value,
+                    );
                     _descriptionController.text = treatment.name ?? '';
                     if (treatment.basePrice != null) {
-                      _unitPriceController.text = treatment.basePrice!.toStringAsFixed(2);
+                      _unitPriceController.text = treatment.basePrice!
+                          .toStringAsFixed(2);
                     }
                   }
                 },
@@ -264,10 +272,9 @@ class _AddInvoiceItemDialogState extends State<AddInvoiceItemDialog> {
         const SizedBox(height: 8),
         TextFormField(
           controller: _unitPriceController,
-          decoration: _inputDecoration('0.00').copyWith(
-            prefixText: '\$ ',
-            prefixStyle: AppTextStyles.body1,
-          ),
+          decoration: _inputDecoration(
+            '0.00',
+          ).copyWith(prefixText: '\$ ', prefixStyle: AppTextStyles.body1),
           keyboardType: TextInputType.number,
           validator: (value) {
             if (value == null || value.isEmpty) {
@@ -397,9 +404,13 @@ class _AddInvoiceItemDialogState extends State<AddInvoiceItemDialog> {
 
   void _handleSubmit() {
     if (_formKey.currentState!.validate()) {
+      final treatment = _treatments.firstWhere(
+        (t) => t.id == _selectedTreatmentId,
+      );
       final itemData = {
         'treatmentId': _selectedTreatmentId,
-        'description': _descriptionController.text,
+        'treatmentName': treatment.name, // For display
+        'description': _descriptionController.text, // For database
         'quantity': double.parse(_quantityController.text),
         'unitPrice': double.parse(_unitPriceController.text),
         'totalPrice': _totalPrice,

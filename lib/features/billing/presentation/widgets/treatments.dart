@@ -5,8 +5,10 @@ import 'package:dentist_ms/core/constants/app_text_styles.dart';
 import 'table_wrapper.dart';
 import '../../utils/billing_responsive_helper.dart';
 import '../dialogs/add_treatments.dart';
+import '../dialogs/treatment_details_dialog.dart';
 import '../../bloc/treatment_bloc.dart';
 import '../../bloc/treatment_event.dart';
+import '../../bloc/treatment_state.dart';
 import '../../models/treatment.dart';
 
 class BillingTreatmentCatalogControls extends StatelessWidget {
@@ -100,12 +102,12 @@ class BillingTreatmentCatalogControls extends StatelessWidget {
 }
 
 class BillingTreatmentCatalogTable extends StatelessWidget {
-  final List<Map<String, dynamic>> Treatments;
+  final List<Treatment> treatments;
   final BillingResponsiveHelper responsive;
 
   const BillingTreatmentCatalogTable({
     Key? key,
-    required this.Treatments,
+    required this.treatments,
     required this.responsive,
   }) : super(key: key);
 
@@ -113,45 +115,55 @@ class BillingTreatmentCatalogTable extends StatelessWidget {
   Widget build(BuildContext context) {
     return BillingTableWrapper(
       headers: ['Nom du Treatment', 'Prix', 'Actions'],
-      rows: _buildRows(),
+      rows: _buildRows(context),
     );
   }
 
-  List<Widget> _buildRows() {
-    return Treatments.asMap().entries.map((entry) {
+  List<Widget> _buildRows(BuildContext context) {
+    return treatments.asMap().entries.map((entry) {
       final index = entry.key;
-      final Treatment = entry.value;
-      final isLast = index == Treatments.length - 1;
+      final treatment = entry.value;
+      final isLast = index == treatments.length - 1;
 
       return BillingTableRow(
         isLast: isLast,
         cells: [
-          Text(
-            Treatment['name'],
-            style: AppTextStyles.body1.copyWith(
-              fontWeight: FontWeight.w600,
-              color: AppColors.textPrimary,
+          InkWell(
+            onTap: () => _showTreatmentDetails(context, treatment),
+            child: Text(
+              treatment.name ?? 'N/A',
+              style: AppTextStyles.body1.copyWith(
+                fontWeight: FontWeight.w600,
+                color: AppColors.textPrimary,
+              ),
             ),
           ),
           Text(
-            '\$${Treatment['price'].toStringAsFixed(0)}',
+            '\$${treatment.basePrice?.toStringAsFixed(0) ?? '0'}',
             style: AppTextStyles.body1.copyWith(
               fontWeight: FontWeight.w600,
               color: Colors.green,
             ),
           ),
-          _buildActionButtons(),
+          _buildActionButtons(context, treatment),
         ],
       );
     }).toList();
   }
 
-  Widget _buildActionButtons() {
+  void _showTreatmentDetails(BuildContext context, Treatment treatment) {
+    showDialog(
+      context: context,
+      builder: (context) => TreatmentDetailsDialog(treatment: treatment),
+    );
+  }
+
+  Widget _buildActionButtons(BuildContext context, Treatment treatment) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
         OutlinedButton(
-          onPressed: () {},
+          onPressed: () => _handleEdit(context, treatment),
           style: OutlinedButton.styleFrom(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             side: BorderSide(color: AppColors.border),
@@ -169,10 +181,10 @@ class BillingTreatmentCatalogTable extends StatelessWidget {
         ),
         const SizedBox(width: 8),
         OutlinedButton(
-          onPressed: () {},
+          onPressed: () => _handleDelete(context, treatment),
           style: OutlinedButton.styleFrom(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            side: BorderSide(color: AppColors.border),
+            side: BorderSide(color: Colors.red.shade300),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(6),
             ),
@@ -180,12 +192,99 @@ class BillingTreatmentCatalogTable extends StatelessWidget {
           child: Text(
             'Supprimer',
             style: AppTextStyles.body1.copyWith(
-              color: AppColors.textPrimary,
+              color: Colors.red,
               fontSize: 14,
             ),
           ),
         ),
       ],
     );
+  }
+
+  Future<void> _handleEdit(BuildContext context, Treatment treatment) async {
+    final result = await showDialog(
+      context: context,
+      builder: (context) => AddTreatmentDialog(
+        treatment: {
+          'id': treatment.id,
+          'code': treatment.code,
+          'name': treatment.name,
+          'price': treatment.basePrice,
+          'description': treatment.description,
+        },
+      ),
+    );
+
+    if (result != null && context.mounted) {
+      final updatedTreatment = Treatment(
+        id: treatment.id,
+        code: result['code'] as String?,
+        name: result['name'] as String,
+        description: result['description'] as String?,
+        basePrice: result['price'] as double,
+      );
+
+      context.read<TreatmentBloc>().add(UpdateTreatment(updatedTreatment));
+    }
+  }
+
+  Future<void> _handleDelete(BuildContext context, Treatment treatment) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            Icon(Icons.warning_amber_rounded, color: Colors.orange, size: 28),
+            const SizedBox(width: 12),
+            Text('Confirmer la suppression', style: AppTextStyles.headline2),
+          ],
+        ),
+        content: Text(
+          'Êtes-vous sûr de vouloir supprimer le traitement "${treatment.name}" ?\n\nCette action est irréversible.',
+          style: AppTextStyles.body1,
+        ),
+        actions: [
+          OutlinedButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            style: OutlinedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              side: BorderSide(color: AppColors.border),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            child: Text(
+              'Annuler',
+              style: AppTextStyles.body1.copyWith(
+                color: AppColors.textPrimary,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            child: Text(
+              'Supprimer',
+              style: AppTextStyles.body1.copyWith(
+                color: Colors.white,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && context.mounted && treatment.id != null) {
+      context.read<TreatmentBloc>().add(DeleteTreatment(treatment.id!));
+    }
   }
 }

@@ -340,19 +340,6 @@ class _BillingsPageState extends State<BillingsPage>
           );
         }
 
-        // Convert Treatments to the expected format for the table
-        final treatmentsData = treatments
-            .map(
-              (treatment) => {
-                'id': treatment.id,
-                'code': treatment.code ?? '',
-                'name': treatment.name ?? '',
-                'price': treatment.basePrice ?? 0.0,
-                'description': treatment.description ?? '',
-              },
-            )
-            .toList();
-
         return SingleChildScrollView(
           child: Column(
             children: [
@@ -365,7 +352,7 @@ class _BillingsPageState extends State<BillingsPage>
               Container(
                 height: 500,
                 child: BillingTreatmentCatalogTable(
-                  Treatments: treatmentsData,
+                  treatments: treatments,
                   responsive: responsive,
                 ),
               ),
