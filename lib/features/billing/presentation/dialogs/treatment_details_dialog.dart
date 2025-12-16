@@ -6,10 +6,8 @@ import '../../models/treatment.dart';
 class TreatmentDetailsDialog extends StatelessWidget {
   final Treatment treatment;
 
-  const TreatmentDetailsDialog({
-    Key? key,
-    required this.treatment,
-  }) : super(key: key);
+  const TreatmentDetailsDialog({Key? key, required this.treatment})
+    : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -45,7 +43,8 @@ class TreatmentDetailsDialog extends StatelessWidget {
                     _buildDetailRow(
                       icon: Icons.attach_money,
                       label: 'Prix',
-                      value: '\$${treatment.basePrice?.toStringAsFixed(2) ?? '0.00'}',
+                      value:
+                          '\$${treatment.basePrice?.toStringAsFixed(2) ?? '0.00'}',
                       color: Colors.green,
                       isHighlighted: true,
                     ),
@@ -77,27 +76,11 @@ class TreatmentDetailsDialog extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(
-              Icons.medical_information,
-              color: AppColors.primary,
-              size: 28,
-            ),
-          ),
-          const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'Détails du traitement',
-                  style: AppTextStyles.headline2,
-                ),
+                Text('Détails du traitement', style: AppTextStyles.headline2),
                 const SizedBox(height: 4),
                 Text(
                   treatment.name ?? 'N/A',
@@ -187,11 +170,7 @@ class TreatmentDetailsDialog extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(
-                Icons.description,
-                color: AppColors.textSecondary,
-                size: 20,
-              ),
+              Icon(Icons.description, color: AppColors.textSecondary, size: 20),
               const SizedBox(width: 8),
               Text(
                 'Description',
@@ -316,10 +295,20 @@ class TreatmentDetailsDialog extends StatelessWidget {
 
   String _formatDate(DateTime date) {
     final months = [
-      'Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin',
-      'Juil', 'Août', 'Sep', 'Oct', 'Nov', 'Déc'
+      'Jan',
+      'Fév',
+      'Mar',
+      'Avr',
+      'Mai',
+      'Juin',
+      'Juil',
+      'Août',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Déc',
     ];
-    
+
     return '${date.day} ${months[date.month - 1]} ${date.year} à ${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
   }
 }

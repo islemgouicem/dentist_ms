@@ -113,15 +113,6 @@ class _AddInvoiceDialogState extends State<AddInvoiceDialog> {
       ),
       child: Row(
         children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Icon(Icons.receipt_long, color: AppColors.primary, size: 24),
-          ),
-          const SizedBox(width: 12),
           Text('Nouvelle facture', style: AppTextStyles.headline2),
           const Spacer(),
           IconButton(
@@ -234,7 +225,7 @@ class _AddInvoiceDialogState extends State<AddInvoiceDialog> {
                   '${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}',
                   style: AppTextStyles.body1,
                 ),
-                Icon(Icons.calendar_today, size: 20, color: AppColors.primary),
+                Icon(Icons.calendar_today, size: 20, color: AppColors.azure_2),
               ],
             ),
           ),

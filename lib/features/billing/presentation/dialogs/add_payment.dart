@@ -115,15 +115,6 @@ class _AddPaymentDialogState extends State<AddPaymentDialog> {
       ),
       child: Row(
         children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: Colors.green.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: const Icon(Icons.payment, color: Colors.green, size: 24),
-          ),
-          const SizedBox(width: 12),
           Text(
             isEditing ? 'Modifier le paiement' : 'Ajouter un paiement',
             style: AppTextStyles.headline2,
@@ -239,7 +230,7 @@ class _AddPaymentDialogState extends State<AddPaymentDialog> {
                   '${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}',
                   style: AppTextStyles.body1,
                 ),
-                Icon(Icons.calendar_today, size: 20, color: AppColors.primary),
+                Icon(Icons.calendar_today, size: 20, color: AppColors.azure_2),
               ],
             ),
           ),
@@ -374,7 +365,7 @@ class _AddPaymentDialogState extends State<AddPaymentDialog> {
           ElevatedButton(
             onPressed: _handleSubmit,
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.green,
+              backgroundColor: AppColors.primary,
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8),

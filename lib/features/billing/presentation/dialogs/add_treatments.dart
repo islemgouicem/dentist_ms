@@ -95,19 +95,6 @@ class _AddTreatmentDialogState extends State<AddTreatmentDialog> {
       ),
       child: Row(
         children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: AppColors.cardGreen.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Icon(
-              isEditing ? Icons.edit : Icons.add,
-              color: AppColors.cardGreen,
-              size: 24,
-            ),
-          ),
-          const SizedBox(width: 12),
           Text(
             isEditing ? 'Modifier le Treatment' : 'Ajouter un Treatment',
             style: AppTextStyles.headline2,
@@ -263,7 +250,7 @@ class _AddTreatmentDialogState extends State<AddTreatmentDialog> {
           ElevatedButton(
             onPressed: _handleSubmit,
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.cardGreen,
+              backgroundColor: AppColors.primary,
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8),

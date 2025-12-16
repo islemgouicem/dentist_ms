@@ -161,7 +161,7 @@ class BillingPaymentHistoryTable extends StatelessWidget {
         cells: [
           Text(
             dateStr,
-            style: AppTextStyles.body1.copyWith(color: AppColors.textSecondary),
+            style: AppTextStyles.body1.copyWith(color: AppColors.textPrimary),
           ),
           Text(
             (payment['invoiceId'] ?? payment['invoice_id'] ?? '').toString(),

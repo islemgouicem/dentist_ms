@@ -129,19 +129,6 @@ class _AddInvoiceItemDialogState extends State<AddInvoiceItemDialog> {
       ),
       child: Row(
         children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Icon(
-              Icons.add_shopping_cart,
-              color: AppColors.primary,
-              size: 24,
-            ),
-          ),
-          const SizedBox(width: 12),
           Text('Ajouter un article', style: AppTextStyles.headline2),
           const Spacer(),
           IconButton(
