@@ -102,6 +102,10 @@ class _BillingsPageState extends State<BillingsPage>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   String _selectedStatus = 'Tous les statuts';
+  String _invoiceSearchQuery = '';
+  String _treatmentSearchQuery = '';
+  String _selectedCategory = 'Toutes les catégories';
+  String _selectedPatient = 'Tous les patients';
 
   double _totalRevenue = 0.0;
   double _pendingPayments = 0.0;
@@ -167,17 +171,26 @@ class _BillingsPageState extends State<BillingsPage>
   }
 
   List<Invoice> _filterInvoices(List<Invoice> invoices) {
-    if (_selectedStatus == 'Tous les statuts') {
-      return invoices;
-    }
-
-    String statusFilter = _selectedStatus.toLowerCase();
-    if (statusFilter == 'payé') statusFilter = 'paid';
-    if (statusFilter == 'partiel') statusFilter = 'partial';
-    if (statusFilter == 'non payé') statusFilter = 'unpaid';
-
     return invoices.where((invoice) {
-      return (invoice.status?.toLowerCase() ?? '') == statusFilter;
+      // Filter by status
+      bool statusMatch = true;
+      if (_selectedStatus != 'Tous les statuts') {
+        String statusFilter = _selectedStatus.toLowerCase();
+        if (statusFilter == 'payé') statusFilter = 'paid';
+        if (statusFilter == 'partiel') statusFilter = 'partial';
+        if (statusFilter == 'non payé') statusFilter = 'unpaid';
+        statusMatch = (invoice.status?.toLowerCase() ?? '') == statusFilter;
+      }
+
+      // Filter by patient search
+      bool searchMatch = true;
+      if (_invoiceSearchQuery.isNotEmpty) {
+        searchMatch = (invoice.patientName?.toLowerCase() ?? '').contains(
+          _invoiceSearchQuery.toLowerCase(),
+        );
+      }
+
+      return statusMatch && searchMatch;
     }).toList();
   }
 
@@ -185,6 +198,35 @@ class _BillingsPageState extends State<BillingsPage>
     setState(() {
       _selectedStatus = newStatus;
     });
+  }
+
+  List<Treatment> _filterTreatments(List<Treatment> treatments) {
+    if (_treatmentSearchQuery.isEmpty) {
+      return treatments;
+    }
+    return treatments.where((treatment) {
+      return (treatment.name?.toLowerCase() ?? '').contains(
+        _treatmentSearchQuery.toLowerCase(),
+      );
+    }).toList();
+  }
+
+  List<Expense> _filterExpenses(List<Expense> expenses) {
+    if (_selectedCategory == 'Toutes les catégories') {
+      return expenses;
+    }
+    return expenses.where((expense) {
+      return (expense.categoryName ?? '-') == _selectedCategory;
+    }).toList();
+  }
+
+  List<Payment> _filterPayments(List<Payment> payments) {
+    if (_selectedPatient == 'Tous les patients') {
+      return payments;
+    }
+    return payments.where((payment) {
+      return (payment.patientName ?? '-') == _selectedPatient;
+    }).toList();
   }
 
   @override
@@ -313,6 +355,11 @@ class _BillingsPageState extends State<BillingsPage>
                 responsive: responsive,
                 selectedStatus: _selectedStatus,
                 onStatusChanged: _onStatusChanged,
+                onSearchChanged: (query) {
+                  setState(() {
+                    _invoiceSearchQuery = query;
+                  });
+                },
               ),
               InvoiceTable(invoices: filteredInvoices, responsive: responsive),
             ],
@@ -340,6 +387,8 @@ class _BillingsPageState extends State<BillingsPage>
           );
         }
 
+        final filteredTreatments = _filterTreatments(treatments);
+
         return SingleChildScrollView(
           child: Column(
             children: [
@@ -348,11 +397,16 @@ class _BillingsPageState extends State<BillingsPage>
                 onAddTreatment: () {
                   // Refresh is handled by BLoC
                 },
+                onSearchChanged: (query) {
+                  setState(() {
+                    _treatmentSearchQuery = query;
+                  });
+                },
               ),
               Container(
                 height: 500,
                 child: BillingTreatmentCatalogTable(
-                  treatments: treatments,
+                  treatments: filteredTreatments,
                   responsive: responsive,
                 ),
               ),
@@ -381,8 +435,15 @@ class _BillingsPageState extends State<BillingsPage>
           );
         }
 
+        // Get unique categories
+        final categories =
+            expenses.map((e) => e.categoryName ?? '-').toSet().toList()..sort();
+
+        // Filter expenses
+        final filteredExpenses = _filterExpenses(expenses);
+
         // Convert Expenses to the expected format for the table
-        final expensesData = expenses
+        final expensesData = filteredExpenses
             .map(
               (expense) => {
                 'id': expense.id,
@@ -404,6 +465,13 @@ class _BillingsPageState extends State<BillingsPage>
                 onAddExpense: () {
                   // Refresh is handled by BLoC
                 },
+                selectedCategory: _selectedCategory,
+                onCategoryChanged: (category) {
+                  setState(() {
+                    _selectedCategory = category;
+                  });
+                },
+                categories: categories,
               ),
               Container(
                 height: 500,
@@ -437,8 +505,15 @@ class _BillingsPageState extends State<BillingsPage>
           );
         }
 
+        // Get unique patients
+        final patients =
+            payments.map((p) => p.patientName ?? '-').toSet().toList()..sort();
+
+        // Filter payments
+        final filteredPayments = _filterPayments(payments);
+
         // Convert Payments to the expected format for the table
-        final paymentsData = payments
+        final paymentsData = filteredPayments
             .map(
               (payment) => {
                 'id': payment.id,
@@ -466,6 +541,13 @@ class _BillingsPageState extends State<BillingsPage>
                 responsive: responsive,
                 onAddPayment: () =>
                     context.read<PaymentBloc>().add(LoadPayments()),
+                selectedPatient: _selectedPatient,
+                onPatientChanged: (patient) {
+                  setState(() {
+                    _selectedPatient = patient;
+                  });
+                },
+                patients: patients,
               ),
               Container(
                 height: 500,

@@ -12,11 +12,17 @@ import '../../models/expense.dart';
 class BillingExpensesControls extends StatelessWidget {
   final BillingResponsiveHelper responsive;
   final VoidCallback onAddExpense;
+  final String selectedCategory;
+  final Function(String) onCategoryChanged;
+  final List<String> categories;
 
   const BillingExpensesControls({
     Key? key,
     required this.responsive,
     required this.onAddExpense,
+    this.selectedCategory = 'Toutes les catégories',
+    required this.onCategoryChanged,
+    this.categories = const [],
   }) : super(key: key);
 
   @override
@@ -25,7 +31,7 @@ class BillingExpensesControls extends StatelessWidget {
       padding: EdgeInsets.all(responsive.controlsPadding),
       child: Row(
         children: [
-          Expanded(child: _buildSearchField()),
+          Expanded(child: _buildCategoryFilter()),
           const SizedBox(width: 16),
           _buildAddButton(context),
         ],
@@ -33,18 +39,18 @@ class BillingExpensesControls extends StatelessWidget {
     );
   }
 
-  Widget _buildSearchField() {
-    return TextField(
+  Widget _buildCategoryFilter() {
+    final allCategories = ['Toutes les catégories', ...categories];
+    return DropdownButtonFormField<String>(
+      value: selectedCategory,
       decoration: InputDecoration(
-        hintText: 'Rechercher des dépenses...',
-        hintStyle: AppTextStyles.body1.copyWith(color: AppColors.textSecondary),
+        filled: true,
+        fillColor: AppColors.cardgrey,
         prefixIcon: Icon(
-          Icons.search,
+          Icons.filter_list,
           size: 20,
           color: AppColors.textSecondary,
         ),
-        filled: true,
-        fillColor: AppColors.cardgrey,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
           borderSide: BorderSide(color: AppColors.border),
@@ -62,6 +68,21 @@ class BillingExpensesControls extends StatelessWidget {
           vertical: 12,
         ),
       ),
+      items: allCategories.map((String category) {
+        return DropdownMenuItem<String>(
+          value: category,
+          child: Text(
+            category,
+            style: AppTextStyles.body1.copyWith(color: AppColors.textPrimary),
+          ),
+        );
+      }).toList(),
+      onChanged: (String? newValue) {
+        if (newValue != null) {
+          onCategoryChanged(newValue);
+        }
+      },
+      icon: Icon(Icons.keyboard_arrow_down, color: AppColors.textSecondary),
     );
   }
 
@@ -128,7 +149,7 @@ class BillingExpensesTable extends StatelessWidget {
         cells: [
           Text(
             expense['date'],
-            style: AppTextStyles.body1.copyWith(color: AppColors.textSecondary),
+            style: AppTextStyles.body1.copyWith(color: AppColors.textPrimary),
           ),
           Text(
             expense['description'],

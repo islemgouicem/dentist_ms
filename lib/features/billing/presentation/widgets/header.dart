@@ -46,9 +46,7 @@ class BillingHeader extends StatelessWidget {
         patientId: result['patientId'] as int?,
         status: result['status'] as String,
         startDate: DateTime.parse(result['startDate'] as String),
-        dueDate: DateTime.parse(
-          result['startDate'] as String,
-        ).add(const Duration(days: 7)),
+        dueDate: null, // Doctor will set this later from invoice details
         subtotalAmount: 0.0,
         discountAmount: result['discount'] as double,
         totalAmount: 0.0,

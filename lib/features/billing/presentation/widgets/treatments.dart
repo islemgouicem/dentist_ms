@@ -14,11 +14,13 @@ import '../../models/treatment.dart';
 class BillingTreatmentCatalogControls extends StatelessWidget {
   final BillingResponsiveHelper responsive;
   final VoidCallback onAddTreatment;
+  final Function(String)? onSearchChanged;
 
   const BillingTreatmentCatalogControls({
     Key? key,
     required this.responsive,
     required this.onAddTreatment,
+    this.onSearchChanged,
   }) : super(key: key);
 
   @override
@@ -37,8 +39,9 @@ class BillingTreatmentCatalogControls extends StatelessWidget {
 
   Widget _buildSearchField() {
     return TextField(
+      onChanged: onSearchChanged,
       decoration: InputDecoration(
-        hintText: 'Rechercher des Treatments...',
+        hintText: 'Rechercher des traitements...',
         hintStyle: AppTextStyles.body1.copyWith(color: AppColors.textSecondary),
         prefixIcon: Icon(
           Icons.search,

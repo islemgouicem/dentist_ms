@@ -92,13 +92,29 @@ class _InvoiceDetailScreenState extends State<InvoiceDetailScreen> {
           style: AppTextStyles.headline2.copyWith(color: AppColors.textPrimary),
         ),
       ),
-      body: BlocListener<InvoiceItemBloc, InvoiceItemState>(
-        listener: (context, state) {
-          // Reload invoice whenever invoice items change to get updated totals
-          if (state is InvoiceItemsLoadSuccess) {
-            context.read<InvoiceBloc>().add(LoadInvoiceById(widget.invoiceId));
-          }
-        },
+      body: MultiBlocListener(
+        listeners: [
+          BlocListener<InvoiceItemBloc, InvoiceItemState>(
+            listener: (context, state) {
+              // Reload invoice whenever invoice items change to get updated totals
+              if (state is InvoiceItemsLoadSuccess) {
+                context.read<InvoiceBloc>().add(
+                  LoadInvoiceById(widget.invoiceId),
+                );
+              }
+            },
+          ),
+          BlocListener<InvoiceBloc, InvoiceState>(
+            listener: (context, state) {
+              if (state is InvoicesLoadSuccess) {
+                // After update, reload the specific invoice
+                context.read<InvoiceBloc>().add(
+                  LoadInvoiceById(widget.invoiceId),
+                );
+              }
+            },
+          ),
+        ],
         child: BlocBuilder<InvoiceBloc, InvoiceState>(
           builder: (context, invoiceState) {
             if (invoiceState is InvoicesLoadInProgress) {
@@ -232,7 +248,13 @@ class _InvoiceDetailScreenState extends State<InvoiceDetailScreen> {
           ),
           const SizedBox(height: 16),
           _buildInfoRow('Date de début', _formatDate(invoice.startDate)),
-          _buildInfoRow('Date d\'échéance', _formatDate(invoice.dueDate)),
+          _buildEditableInfoRow(
+            'Date d\'échéance',
+            invoice.dueDate != null
+                ? _formatDate(invoice.dueDate)
+                : 'Non défini',
+            () => _editDueDate(invoice),
+          ),
           if (invoice.notes != null && invoice.notes!.isNotEmpty)
             _buildInfoRow('Notes', invoice.notes ?? '-'),
         ],
@@ -263,6 +285,47 @@ class _InvoiceDetailScreenState extends State<InvoiceDetailScreen> {
                 color: AppColors.textPrimary,
                 fontWeight: FontWeight.w600,
               ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEditableInfoRow(
+    String label,
+    String value,
+    VoidCallback onEdit,
+  ) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 140,
+            child: Text(
+              label,
+              style: AppTextStyles.body1.copyWith(
+                color: AppColors.textSecondary,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: AppTextStyles.body1.copyWith(
+                color: AppColors.textPrimary,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          InkWell(
+            onTap: onEdit,
+            child: Padding(
+              padding: const EdgeInsets.all(4),
+              child: Icon(Icons.edit, size: 18, color: AppColors.primary),
             ),
           ),
         ],
@@ -575,6 +638,38 @@ class _InvoiceDetailScreenState extends State<InvoiceDetailScreen> {
     if (confirm == true && mounted) {
       context.read<InvoiceItemBloc>().add(DeleteInvoiceItem(item.id!));
       // Invoice will be automatically reloaded via BlocListener when item is deleted
+    }
+  }
+
+  void _editDueDate(Invoice invoice) async {
+    final DateTime initialDate =
+        invoice.dueDate ??
+        (invoice.startDate != null && invoice.startDate!.isAfter(DateTime.now())
+            ? invoice.startDate!
+            : DateTime.now());
+
+    final DateTime? pickedDate = await showDatePicker(
+      context: context,
+      initialDate: initialDate,
+      firstDate: invoice.startDate ?? DateTime(2020),
+      lastDate: DateTime(2100),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: ColorScheme.light(
+              primary: AppColors.primary,
+              onPrimary: Colors.white,
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+
+    if (pickedDate != null && mounted) {
+      // Update the invoice with the new due date
+      final updatedInvoice = invoice.copyWith(dueDate: pickedDate);
+      context.read<InvoiceBloc>().add(UpdateInvoice(updatedInvoice));
     }
   }
 

@@ -12,12 +12,14 @@ class BillingTableControls extends StatelessWidget {
   final BillingResponsiveHelper responsive;
   final String selectedStatus;
   final Function(String) onStatusChanged;
+  final Function(String)? onSearchChanged;
 
   const BillingTableControls({
     Key? key,
     required this.responsive,
     this.selectedStatus = 'Tous les statuts',
     required this.onStatusChanged,
+    this.onSearchChanged,
   }) : super(key: key);
 
   @override
@@ -36,8 +38,9 @@ class BillingTableControls extends StatelessWidget {
 
   Widget _buildSearchField() {
     return TextField(
+      onChanged: onSearchChanged,
       decoration: InputDecoration(
-        hintText: 'Rechercher des factures...',
+        hintText: 'Rechercher par patient...',
         hintStyle: AppTextStyles.body1.copyWith(color: AppColors.textSecondary),
         prefixIcon: Icon(
           Icons.search,

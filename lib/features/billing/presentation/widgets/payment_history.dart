@@ -16,11 +16,17 @@ import '../dialogs/add_payment.dart';
 class BillingPaymentHistoryControls extends StatelessWidget {
   final BillingResponsiveHelper responsive;
   final VoidCallback onAddPayment;
+  final String selectedPatient;
+  final Function(String) onPatientChanged;
+  final List<String> patients;
 
   const BillingPaymentHistoryControls({
     Key? key,
     required this.responsive,
     required this.onAddPayment,
+    this.selectedPatient = 'Tous les patients',
+    required this.onPatientChanged,
+    this.patients = const [],
   }) : super(key: key);
 
   @override
@@ -29,7 +35,7 @@ class BillingPaymentHistoryControls extends StatelessWidget {
       padding: EdgeInsets.all(responsive.controlsPadding),
       child: Row(
         children: [
-          Expanded(child: _buildSearchField()),
+          Expanded(child: _buildPatientFilter()),
           const SizedBox(width: 16),
           _buildAddPaymentButton(context),
         ],
@@ -37,18 +43,18 @@ class BillingPaymentHistoryControls extends StatelessWidget {
     );
   }
 
-  Widget _buildSearchField() {
-    return TextField(
+  Widget _buildPatientFilter() {
+    final allPatients = ['Tous les patients', ...patients];
+    return DropdownButtonFormField<String>(
+      value: selectedPatient,
       decoration: InputDecoration(
-        hintText: 'Rechercher des paiements...',
-        hintStyle: AppTextStyles.body1.copyWith(color: AppColors.textSecondary),
+        filled: true,
+        fillColor: AppColors.cardgrey,
         prefixIcon: Icon(
-          Icons.search,
+          Icons.filter_list,
           size: 20,
           color: AppColors.textSecondary,
         ),
-        filled: true,
-        fillColor: AppColors.cardgrey,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
           borderSide: BorderSide(color: AppColors.border),
@@ -66,6 +72,21 @@ class BillingPaymentHistoryControls extends StatelessWidget {
           vertical: 12,
         ),
       ),
+      items: allPatients.map((String patient) {
+        return DropdownMenuItem<String>(
+          value: patient,
+          child: Text(
+            patient,
+            style: AppTextStyles.body1.copyWith(color: AppColors.textPrimary),
+          ),
+        );
+      }).toList(),
+      onChanged: (String? newValue) {
+        if (newValue != null) {
+          onPatientChanged(newValue);
+        }
+      },
+      icon: Icon(Icons.keyboard_arrow_down, color: AppColors.textSecondary),
     );
   }
 
