@@ -3,9 +3,9 @@ import 'package:dentist_ms/core/constants/app_colors.dart';
 import 'package:dentist_ms/core/constants/app_text_styles.dart';
 
 class AddTreatmentDialog extends StatefulWidget {
-  final Map<String, dynamic>? Treatment; // For editing existing Treatment
+  final Map<String, dynamic>? treatment; // For editing existing treatment
 
-  const AddTreatmentDialog({Key? key, this.Treatment}) : super(key: key);
+  const AddTreatmentDialog({Key? key, this.treatment}) : super(key: key);
 
   @override
   State<AddTreatmentDialog> createState() => _AddTreatmentDialogState();
@@ -21,11 +21,11 @@ class _AddTreatmentDialogState extends State<AddTreatmentDialog> {
   @override
   void initState() {
     super.initState();
-    if (widget.Treatment != null) {
-      _codeController.text = widget.Treatment!['code'] ?? '';
-      _nameController.text = widget.Treatment!['name'] ?? '';
-      _priceController.text = widget.Treatment!['price']?.toString() ?? '';
-      _descriptionController.text = widget.Treatment!['description'] ?? '';
+    if (widget.treatment != null) {
+      _codeController.text = widget.treatment!['code'] ?? '';
+      _nameController.text = widget.treatment!['name'] ?? '';
+      _priceController.text = widget.treatment!['price']?.toString() ?? '';
+      _descriptionController.text = widget.treatment!['description'] ?? '';
     }
   }
 
@@ -41,7 +41,7 @@ class _AddTreatmentDialogState extends State<AddTreatmentDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final isEditing = widget.Treatment != null;
+    final isEditing = widget.treatment != null;
 
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -95,21 +95,8 @@ class _AddTreatmentDialogState extends State<AddTreatmentDialog> {
       ),
       child: Row(
         children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: AppColors.cardGreen.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Icon(
-              Icons.medical_services,
-              color: AppColors.cardGreen,
-              size: 24,
-            ),
-          ),
-          const SizedBox(width: 12),
           Text(
-            isEditing ? 'Modifier le Treatment' : 'Ajouter un Treatment',
+            isEditing ? 'Modifier le Traitement' : 'Ajouter un Traitement',
             style: AppTextStyles.headline2,
           ),
           const Spacer(),
@@ -191,7 +178,7 @@ class _AddTreatmentDialogState extends State<AddTreatmentDialog> {
           controller: _priceController,
           decoration: _inputDecoration(
             '0.00',
-          ).copyWith(prefixText: '\$ ', prefixStyle: AppTextStyles.body1),
+          ).copyWith(suffixText: '\DA ', suffixStyle: AppTextStyles.body1),
           keyboardType: TextInputType.number,
           validator: (value) {
             if (value == null || value.isEmpty) {
@@ -263,7 +250,7 @@ class _AddTreatmentDialogState extends State<AddTreatmentDialog> {
           ElevatedButton(
             onPressed: _handleSubmit,
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.cardGreen,
+              backgroundColor: AppColors.primary,
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8),
@@ -310,14 +297,19 @@ class _AddTreatmentDialogState extends State<AddTreatmentDialog> {
 
   void _handleSubmit() {
     if (_formKey.currentState!.validate()) {
-      final Treatment = {
+      final result = {
         'code': _codeController.text,
         'name': _nameController.text,
         'price': double.parse(_priceController.text),
         'description': _descriptionController.text,
       };
 
-      Navigator.of(context).pop(Treatment);
+      // Include ID if editing
+      if (widget.treatment != null && widget.treatment!['id'] != null) {
+        result['id'] = widget.treatment!['id'];
+      }
+
+      Navigator.of(context).pop(result);
     }
   }
 }

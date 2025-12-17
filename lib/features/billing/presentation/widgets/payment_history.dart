@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:dentist_ms/core/constants/app_colors.dart';
+
 import 'package:dentist_ms/core/constants/app_text_styles.dart';
 import 'package:intl/intl.dart';
 import 'table_wrapper.dart';
 import '../../utils/billing_responsive_helper.dart';
 import '../../models/payment.dart';
 import '../../models/invoice.dart';
+import 'billing_controls.dart';
 import '../../bloc/payment_bloc.dart';
 import '../../bloc/payment_event.dart';
 import '../../bloc/invoice_bloc.dart';
@@ -16,63 +18,31 @@ import '../dialogs/add_payment.dart';
 class BillingPaymentHistoryControls extends StatelessWidget {
   final BillingResponsiveHelper responsive;
   final VoidCallback onAddPayment;
+  final String selectedPatient;
+  final Function(String) onPatientChanged;
+  final List<String> patients;
 
   const BillingPaymentHistoryControls({
     Key? key,
     required this.responsive,
     required this.onAddPayment,
+    this.selectedPatient = 'Tous les patients',
+    required this.onPatientChanged,
+    this.patients = const [],
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.all(responsive.controlsPadding),
-      child: Row(
-        children: [
-          Expanded(child: _buildSearchField()),
-          const SizedBox(width: 16),
-          _buildAddPaymentButton(context),
-        ],
+    final allPatients = ['Tous les patients', ...patients];
+    return BillingControls(
+      responsive: responsive,
+      leftWidget: BillingDropdownFilter(
+        value: selectedPatient,
+        items: allPatients,
+        onChanged: onPatientChanged,
       ),
-    );
-  }
-
-  Widget _buildSearchField() {
-    return TextField(
-      decoration: InputDecoration(
-        hintText: 'Rechercher des paiements...',
-        hintStyle: AppTextStyles.body1.copyWith(color: AppColors.textSecondary),
-        prefixIcon: Icon(
-          Icons.search,
-          size: 20,
-          color: AppColors.textSecondary,
-        ),
-        filled: true,
-        fillColor: AppColors.cardgrey,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide(color: AppColors.border),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide(color: AppColors.border),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide(color: AppColors.primary, width: 2),
-        ),
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 12,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildAddPaymentButton(BuildContext context) {
-    return ElevatedButton.icon(
-      onPressed: () async {
-        // Get invoices from the bloc before opening dialog
+      buttonText: 'Ajouter un paiement',
+      onButtonPressed: () async {
         final invoices =
             context.read<InvoiceBloc>().state is InvoicesLoadSuccess
             ? (context.read<InvoiceBloc>().state as InvoicesLoadSuccess)
@@ -85,7 +55,6 @@ class BillingPaymentHistoryControls extends StatelessWidget {
         );
 
         if (result != null && context.mounted) {
-          // Create Payment object from the dialog result
           final payment = Payment(
             invoiceId: result['invoiceId'] as int?,
             amount: result['amount'] as double,
@@ -95,24 +64,10 @@ class BillingPaymentHistoryControls extends StatelessWidget {
             notes: result['notes'] as String?,
           );
 
-          // Dispatch the AddPayment event to the BLoC
           context.read<PaymentBloc>().add(AddPayment(payment));
           onAddPayment();
         }
       },
-      icon: const Icon(Icons.add, size: 20),
-      label: Text(
-        'Ajouter un paiement',
-        style: AppTextStyles.body1.copyWith(
-          color: Colors.white,
-          fontWeight: FontWeight.w600,
-        ),
-      ),
-      style: ElevatedButton.styleFrom(
-        backgroundColor: AppColors.primary,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-      ),
     );
   }
 }
@@ -143,14 +98,13 @@ class BillingPaymentHistoryTable extends StatelessWidget {
 
       final double amount = (payment['amount'] ?? 0.0) as double;
 
-      // Format date to yyyy-MM-dd
       String dateStr = '';
       final rawDate = payment['payment_date'] ?? payment['date'] ?? '';
       if (rawDate is DateTime) {
-        dateStr = DateFormat('yyyy-MM-dd').format(rawDate);
+        dateStr = DateFormat('dd-MM-yyyy').format(rawDate);
       } else if (rawDate is String && rawDate.isNotEmpty) {
         try {
-          dateStr = DateFormat('yyyy-MM-dd').format(DateTime.parse(rawDate));
+          dateStr = DateFormat('dd-MM-yyyy').format(DateTime.parse(rawDate));
         } catch (_) {
           dateStr = rawDate;
         }
@@ -161,7 +115,7 @@ class BillingPaymentHistoryTable extends StatelessWidget {
         cells: [
           Text(
             dateStr,
-            style: AppTextStyles.body1.copyWith(color: AppColors.textSecondary),
+            style: AppTextStyles.body1.copyWith(color: AppColors.textPrimary),
           ),
           Text(
             (payment['invoiceId'] ?? payment['invoice_id'] ?? '').toString(),
@@ -175,7 +129,7 @@ class BillingPaymentHistoryTable extends StatelessWidget {
             style: AppTextStyles.body1.copyWith(color: AppColors.textPrimary),
           ),
           Text(
-            '\$${amount.toStringAsFixed(2)}',
+            '${amount.toStringAsFixed(2)}DA',
             style: AppTextStyles.body1.copyWith(
               fontWeight: FontWeight.w600,
               color: Colors.green,

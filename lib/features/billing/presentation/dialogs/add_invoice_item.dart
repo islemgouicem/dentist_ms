@@ -1,88 +1,85 @@
 import 'package:flutter/material.dart';
 import 'package:dentist_ms/core/constants/app_colors.dart';
 import 'package:dentist_ms/core/constants/app_text_styles.dart';
-import 'package:dentist_ms/features/billing/models/expense_category.dart';
-import 'package:dentist_ms/features/billing/data/expense_category_remote.dart';
+import 'package:dentist_ms/features/billing/models/treatment.dart';
+import 'package:dentist_ms/features/billing/data/treatment_remote.dart';
 
-class AddExpenseDialog extends StatefulWidget {
-  final Map<String, dynamic>? expense;
+class AddInvoiceItemDialog extends StatefulWidget {
+  final int invoiceId;
 
-  const AddExpenseDialog({Key? key, this.expense}) : super(key: key);
+  const AddInvoiceItemDialog({Key? key, required this.invoiceId})
+    : super(key: key);
 
   @override
-  State<AddExpenseDialog> createState() => _AddExpenseDialogState();
+  State<AddInvoiceItemDialog> createState() => _AddInvoiceItemDialogState();
 }
 
-class _AddExpenseDialogState extends State<AddExpenseDialog> {
+class _AddInvoiceItemDialogState extends State<AddInvoiceItemDialog> {
   final _formKey = GlobalKey<FormState>();
   final _descriptionController = TextEditingController();
-  final _amountController = TextEditingController();
-  final _notesController = TextEditingController();
+  final _quantityController = TextEditingController(text: '1');
+  final _unitPriceController = TextEditingController();
 
-  DateTime _selectedDate = DateTime.now();
-  int? _selectedCategoryId;
-  String? _selectedPaymentMethod;
-
-  List<ExpenseCategory> _categories = [];
-  bool _isLoadingCategories = true;
+  int? _selectedTreatmentId;
+  List<Treatment> _treatments = [];
+  bool _isLoadingTreatments = true;
+  double _totalPrice = 0.0;
 
   @override
   void initState() {
     super.initState();
-    _loadCategories();
-    if (widget.expense != null) {
-      _descriptionController.text = widget.expense!['description'] ?? '';
-      _amountController.text = widget.expense!['amount']?.toString() ?? '';
-      _notesController.text = widget.expense!['notes'] ?? '';
-      _selectedCategoryId = widget.expense!['categoryId'] as int?;
-      _selectedPaymentMethod = widget.expense!['paymentMethod'];
-      if (widget.expense!['date'] != null) {
-        _selectedDate = DateTime.parse(widget.expense!['date']);
-      }
-    }
+    _loadTreatments();
+    _quantityController.addListener(_calculateTotal);
+    _unitPriceController.addListener(_calculateTotal);
   }
 
-  Future<void> _loadCategories() async {
+  Future<void> _loadTreatments() async {
     try {
-      final dataSource = ExpenseCategoryRemoteDataSource();
-      final categories = await dataSource.getExpenseCategories();
+      final dataSource = TreatmentRemoteDataSource();
+      final treatments = await dataSource.getTreatments();
       setState(() {
-        _categories = categories;
-        _isLoadingCategories = false;
+        _treatments = treatments;
+        _isLoadingTreatments = false;
       });
     } catch (e) {
       setState(() {
-        _isLoadingCategories = false;
+        _isLoadingTreatments = false;
       });
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur de chargement des catégories: $e')),
+          SnackBar(content: Text('Erreur de chargement des traitements: $e')),
         );
       }
     }
   }
 
+  void _calculateTotal() {
+    final quantity = double.tryParse(_quantityController.text) ?? 0.0;
+    final unitPrice = double.tryParse(_unitPriceController.text) ?? 0.0;
+    setState(() {
+      _totalPrice = quantity * unitPrice;
+    });
+  }
+
   @override
   void dispose() {
     _descriptionController.dispose();
-    _amountController.dispose();
-    _notesController.dispose();
+    _quantityController.dispose();
+    _unitPriceController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final isEditing = widget.expense != null;
-
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Container(
         width: MediaQuery.of(context).size.width * 0.9,
-        constraints: const BoxConstraints(maxWidth: 500, maxHeight: 650),
+        constraints: const BoxConstraints(maxWidth: 500, maxHeight: 600),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            _buildHeader(isEditing),
+            _buildHeader(),
             Expanded(
               child: Container(
                 color: Colors.white,
@@ -93,30 +90,33 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        _buildTreatmentDropdown(),
+                        const SizedBox(height: 16),
                         _buildDescriptionField(),
                         const SizedBox(height: 16),
-                        _buildCategoryDropdown(),
+                        Row(
+                          children: [
+                            Expanded(child: _buildQuantityField()),
+                            const SizedBox(width: 16),
+                            Expanded(child: _buildUnitPriceField()),
+                          ],
+                        ),
                         const SizedBox(height: 16),
-                        _buildAmountField(),
-                        const SizedBox(height: 16),
-                        _buildDatePicker(),
-                        const SizedBox(height: 16),
-
-                        _buildNotesField(),
+                        _buildTotalDisplay(),
                       ],
                     ),
                   ),
                 ),
               ),
             ),
-            _buildActions(isEditing),
+            _buildActions(),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildHeader(bool isEditing) {
+  Widget _buildHeader() {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
@@ -129,10 +129,7 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
       ),
       child: Row(
         children: [
-          Text(
-            isEditing ? 'Modifier la dépense' : 'Ajouter une dépense',
-            style: AppTextStyles.headline2,
-          ),
+          Text('Ajouter un article', style: AppTextStyles.headline2),
           const Spacer(),
           IconButton(
             icon: const Icon(Icons.close),
@@ -141,6 +138,53 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildTreatmentDropdown() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Traitement',
+          style: AppTextStyles.body1.copyWith(
+            fontWeight: FontWeight.w600,
+            color: AppColors.textPrimary,
+          ),
+        ),
+        const SizedBox(height: 8),
+        _isLoadingTreatments
+            ? const Center(child: CircularProgressIndicator())
+            : DropdownButtonFormField<int>(
+                value: _selectedTreatmentId,
+                decoration: _inputDecoration('Sélectionner un traitement'),
+                items: _treatments.map((treatment) {
+                  return DropdownMenuItem(
+                    value: treatment.id,
+                    child: Text(treatment.name ?? ''),
+                  );
+                }).toList(),
+                onChanged: (value) {
+                  setState(() => _selectedTreatmentId = value);
+                  if (value != null) {
+                    final treatment = _treatments.firstWhere(
+                      (t) => t.id == value,
+                    );
+                    _descriptionController.text = treatment.name ?? '';
+                    if (treatment.basePrice != null) {
+                      _unitPriceController.text = treatment.basePrice!
+                          .toStringAsFixed(2);
+                    }
+                  }
+                },
+                validator: (value) {
+                  if (value == null) {
+                    return 'Veuillez sélectionner un traitement';
+                  }
+                  return null;
+                },
+              ),
+      ],
     );
   }
 
@@ -158,7 +202,8 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
         const SizedBox(height: 8),
         TextFormField(
           controller: _descriptionController,
-          decoration: _inputDecoration('Ex: Commande de fournitures dentaires'),
+          decoration: _inputDecoration('Description de l\'article'),
+          maxLines: 2,
           validator: (value) {
             if (value == null || value.isEmpty) {
               return 'La description est requise';
@@ -170,48 +215,12 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
     );
   }
 
-  Widget _buildCategoryDropdown() {
+  Widget _buildQuantityField() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Catégorie',
-          style: AppTextStyles.body1.copyWith(
-            fontWeight: FontWeight.w600,
-            color: AppColors.textPrimary,
-          ),
-        ),
-        const SizedBox(height: 8),
-        _isLoadingCategories
-            ? const Center(child: CircularProgressIndicator())
-            : DropdownButtonFormField<int>(
-                value: _selectedCategoryId,
-                decoration: _inputDecoration('Sélectionner une catégorie'),
-                items: _categories.map((category) {
-                  return DropdownMenuItem(
-                    value: category.id,
-                    child: Text(category.name ?? ''),
-                  );
-                }).toList(),
-                onChanged: (value) =>
-                    setState(() => _selectedCategoryId = value),
-                validator: (value) {
-                  if (value == null) {
-                    return 'Veuillez sélectionner une catégorie';
-                  }
-                  return null;
-                },
-              ),
-      ],
-    );
-  }
-
-  Widget _buildAmountField() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Montant',
+          'Quantité',
           style: AppTextStyles.body1.copyWith(
             fontWeight: FontWeight.w600,
             color: AppColors.textPrimary,
@@ -219,17 +228,15 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
         ),
         const SizedBox(height: 8),
         TextFormField(
-          controller: _amountController,
-          decoration: _inputDecoration(
-            '0.00',
-          ).copyWith(suffixText: '\DA ', suffixStyle: AppTextStyles.body1),
+          controller: _quantityController,
+          decoration: _inputDecoration('1'),
           keyboardType: TextInputType.number,
           validator: (value) {
             if (value == null || value.isEmpty) {
-              return 'Le montant est requis';
+              return 'Requis';
             }
-            if (double.tryParse(value) == null) {
-              return 'Veuillez entrer un montant valide';
+            if (double.tryParse(value) == null || double.parse(value) <= 0) {
+              return 'Invalide';
             }
             return null;
           },
@@ -238,54 +245,12 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
     );
   }
 
-  Widget _buildDatePicker() {
+  Widget _buildUnitPriceField() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Date',
-          style: AppTextStyles.body1.copyWith(
-            fontWeight: FontWeight.w600,
-            color: AppColors.textPrimary,
-          ),
-        ),
-        const SizedBox(height: 8),
-        InkWell(
-          onTap: () async {
-            final date = await showDatePicker(
-              context: context,
-              initialDate: _selectedDate,
-              firstDate: DateTime(2020),
-              lastDate: DateTime.now(),
-            );
-            if (date != null) {
-              setState(() => _selectedDate = date);
-            }
-          },
-          child: InputDecorator(
-            decoration: _inputDecoration('Sélectionner une date'),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  '${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}',
-                  style: AppTextStyles.body1,
-                ),
-                Icon(Icons.calendar_today, size: 20, color: AppColors.azure_2),
-              ],
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildNotesField() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Notes (optionnel)',
+          'Prix unitaire',
           style: AppTextStyles.body1.copyWith(
             fontWeight: FontWeight.w600,
             color: AppColors.textPrimary,
@@ -293,15 +258,58 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
         ),
         const SizedBox(height: 8),
         TextFormField(
-          controller: _notesController,
-          decoration: _inputDecoration('Ajouter des notes...'),
-          maxLines: 3,
+          controller: _unitPriceController,
+          decoration: _inputDecoration(
+            '0.00',
+          ).copyWith(suffixText: '\DA ', suffixStyle: AppTextStyles.body1),
+          keyboardType: TextInputType.number,
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Requis';
+            }
+            if (double.tryParse(value) == null) {
+              return 'Invalide';
+            }
+            return null;
+          },
         ),
       ],
     );
   }
 
-  Widget _buildActions(bool isEditing) {
+  Widget _buildTotalDisplay() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.primary.withOpacity(0.05),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: AppColors.primary.withOpacity(0.2)),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            'Total:',
+            style: AppTextStyles.body1.copyWith(
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+              color: AppColors.textPrimary,
+            ),
+          ),
+          Text(
+            '${_totalPrice.toStringAsFixed(2)} DA',
+            style: AppTextStyles.body1.copyWith(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: AppColors.primary,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildActions() {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
@@ -343,7 +351,7 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
               ),
             ),
             child: Text(
-              isEditing ? 'Modifier' : 'Ajouter',
+              'Ajouter l\'article',
               style: AppTextStyles.body1.copyWith(
                 color: Colors.white,
                 fontWeight: FontWeight.w600,
@@ -383,16 +391,19 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
 
   void _handleSubmit() {
     if (_formKey.currentState!.validate()) {
-      final expense = {
-        'description': _descriptionController.text,
-        'categoryId': _selectedCategoryId,
-        'amount': double.parse(_amountController.text),
-        'date': _selectedDate.toString().split(' ')[0],
-        'paymentMethod': _selectedPaymentMethod,
-        'notes': _notesController.text,
+      final treatment = _treatments.firstWhere(
+        (t) => t.id == _selectedTreatmentId,
+      );
+      final itemData = {
+        'treatmentId': _selectedTreatmentId,
+        'treatmentName': treatment.name, // For display
+        'description': _descriptionController.text, // For database
+        'quantity': double.parse(_quantityController.text),
+        'unitPrice': double.parse(_unitPriceController.text),
+        'totalPrice': _totalPrice,
       };
 
-      Navigator.of(context).pop(expense);
+      Navigator.of(context).pop(itemData);
     }
   }
 }

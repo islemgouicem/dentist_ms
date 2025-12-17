@@ -2,21 +2,23 @@ import 'package:flutter/material.dart';
 import 'package:dentist_ms/core/constants/app_colors.dart';
 import 'package:dentist_ms/core/constants/app_text_styles.dart';
 import 'package:intl/intl.dart';
-import 'status_badge.dart';
 import 'table_wrapper.dart';
 import '../../utils/billing_responsive_helper.dart';
 import '../../models/invoice.dart';
+import '../pages/invoice_details.dart';
 
 class BillingTableControls extends StatelessWidget {
   final BillingResponsiveHelper responsive;
   final String selectedStatus;
   final Function(String) onStatusChanged;
+  final Function(String)? onSearchChanged;
 
   const BillingTableControls({
     Key? key,
     required this.responsive,
     this.selectedStatus = 'Tous les statuts',
     required this.onStatusChanged,
+    this.onSearchChanged,
   }) : super(key: key);
 
   @override
@@ -35,8 +37,9 @@ class BillingTableControls extends StatelessWidget {
 
   Widget _buildSearchField() {
     return TextField(
+      onChanged: onSearchChanged,
       decoration: InputDecoration(
-        hintText: 'Rechercher des factures...',
+        hintText: 'Rechercher par patient...',
         hintStyle: AppTextStyles.body1.copyWith(color: AppColors.textSecondary),
         prefixIcon: Icon(
           Icons.search,
@@ -122,19 +125,12 @@ class InvoiceTable extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BillingTableWrapper(
-      headers: [
-        'N° Facture',
-        'Patient',
-        'Date',
-        'Traitement',
-        'Montant',
-        'Statut',
-      ],
-      rows: _buildRows(),
+      headers: ['N° Facture', 'Patient', 'Date', 'Montant', 'Statut'],
+      rows: _buildRows(context),
     );
   }
 
-  List<Widget> _buildRows() {
+  List<Widget> _buildRows(BuildContext context) {
     return invoices.asMap().entries.map((entry) {
       final index = entry.key;
       final invoice = entry.value;
@@ -143,39 +139,45 @@ class InvoiceTable extends StatelessWidget {
       final status = invoice.status ?? '';
       final totalAmount = invoice.totalAmount ?? 0.0;
 
-      return BillingTableRow(
-        isLast: isLast,
-        cells: [
-          Text(
-            invoice.invoiceNumber ?? '',
-            style: AppTextStyles.body1.copyWith(
-              fontWeight: FontWeight.w600,
-              color: AppColors.textPrimary,
+      return InkWell(
+        onTap: () {
+          if (invoice.id != null) {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) =>
+                    InvoiceDetailScreenWrapper(invoiceId: invoice.id!),
+              ),
+            );
+          }
+        },
+        child: BillingTableRow(
+          isLast: isLast,
+          cells: [
+            Text(
+              invoice.invoiceNumber ?? '',
+              style: AppTextStyles.body1.copyWith(
+                fontWeight: FontWeight.w600,
+                color: AppColors.textPrimary,
+              ),
             ),
-          ),
-          Text(
-            invoice.patientName ?? '-',
-            style: AppTextStyles.body1.copyWith(color: AppColors.textPrimary),
-          ),
-          Text(
-            _formatDate(invoice.startDate),
-            style: AppTextStyles.body1.copyWith(color: AppColors.textPrimary),
-          ),
-          Text(
-            invoice.treatmentName ?? '-',
-            style: AppTextStyles.body1.copyWith(color: AppColors.textPrimary),
-            overflow: TextOverflow.ellipsis,
-          ),
-          Text(
-            '\$${totalAmount.toStringAsFixed(0)}',
-            style: AppTextStyles.body1.copyWith(
-              fontWeight: FontWeight.w600,
-              color: AppColors.textPrimary,
+            Text(
+              invoice.patientName ?? '-',
+              style: AppTextStyles.body1.copyWith(color: AppColors.textPrimary),
             ),
-          ),
-
-          Center(child: _buildStatusBadge(status)),
-        ],
+            Text(
+              _formatDate(invoice.startDate),
+              style: AppTextStyles.body1.copyWith(color: AppColors.textPrimary),
+            ),
+            Text(
+              '${totalAmount.toStringAsFixed(0)} DA',
+              style: AppTextStyles.body1.copyWith(
+                fontWeight: FontWeight.w600,
+                color: AppColors.textPrimary,
+              ),
+            ),
+            _buildStatusBadge(status),
+          ],
+        ),
       );
     }).toList();
   }
@@ -204,7 +206,7 @@ class InvoiceTable extends StatelessWidget {
 
   String _formatDate(DateTime? date) {
     if (date == null) return '';
-    return DateFormat('yyyy-MM-dd').format(date);
+    return DateFormat('dd-MM-yyyy').format(date);
   }
 
   Color _getStatusColor(String status) {
@@ -223,11 +225,11 @@ class InvoiceTable extends StatelessWidget {
   String _getStatusText(String status) {
     switch (status.toLowerCase()) {
       case 'paid':
-        return 'Payé';
+        return 'payé';
       case 'partial':
-        return 'En attente';
+        return 'Partiel';
       case 'unpaid':
-        return 'En retard';
+        return 'Impayé';
       default:
         return status;
     }

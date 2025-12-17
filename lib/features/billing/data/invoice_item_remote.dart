@@ -29,7 +29,7 @@ class InvoiceItemRemoteDataSource {
     try {
       final response = await _client
           .from('invoice_items')
-          .select()
+          .select('*, treatments(name)')
           .eq('invoice_id', invoiceId)
           .order('id', ascending: true);
 
@@ -46,7 +46,7 @@ class InvoiceItemRemoteDataSource {
     try {
       final response = await _client
           .from('invoice_items')
-          .select()
+          .select('*, treatments(name)')
           .eq('id', id)
           .single();
 
@@ -62,7 +62,7 @@ class InvoiceItemRemoteDataSource {
       final response = await _client
           .from('invoice_items')
           .insert(item.toJson())
-          .select()
+          .select('*, treatments(name)')
           .single();
 
       return InvoiceItem.fromJson(response);
@@ -81,7 +81,7 @@ class InvoiceItemRemoteDataSource {
           .from('invoice_items')
           .update(item.toJson())
           .eq('id', item.id!)
-          .select()
+          .select('*, treatments(name)')
           .single();
 
       return InvoiceItem.fromJson(response);

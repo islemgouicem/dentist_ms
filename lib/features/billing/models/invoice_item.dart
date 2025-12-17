@@ -4,7 +4,8 @@ class InvoiceItem extends Equatable {
   final int? id;
   final int? invoiceId;
   final int? treatmentId;
-  final String? description;
+  final String? treatmentName; // Display only - from treatments join
+  final String? description; // Actual database column
   final double? quantity;
   final double? unitPrice;
   final double? totalPrice;
@@ -13,6 +14,7 @@ class InvoiceItem extends Equatable {
     this.id,
     this.invoiceId,
     this.treatmentId,
+    this.treatmentName,
     this.description,
     this.quantity,
     this.unitPrice,
@@ -20,10 +22,18 @@ class InvoiceItem extends Equatable {
   });
 
   factory InvoiceItem.fromJson(Map<String, dynamic> json) {
+    // Handle treatmentName from treatments join if present
+    String? treatmentName;
+    if (json['treatments'] != null) {
+      final treatment = json['treatments'] as Map<String, dynamic>;
+      treatmentName = treatment['name'] as String?;
+    }
+
     return InvoiceItem(
       id: json['id'] as int?,
       invoiceId: json['invoice_id'] as int?,
       treatmentId: json['treatment_id'] as int?,
+      treatmentName: treatmentName,
       description: json['description'] as String?,
       quantity: json['quantity'] != null
           ? double.tryParse(json['quantity'].toString())
@@ -59,6 +69,7 @@ class InvoiceItem extends Equatable {
     int? id,
     int? invoiceId,
     int? treatmentId,
+    String? treatmentName,
     String? description,
     double? quantity,
     double? unitPrice,
@@ -68,6 +79,7 @@ class InvoiceItem extends Equatable {
       id: id ?? this.id,
       invoiceId: invoiceId ?? this.invoiceId,
       treatmentId: treatmentId ?? this.treatmentId,
+      treatmentName: treatmentName ?? this.treatmentName,
       description: description ?? this.description,
       quantity: quantity ?? this.quantity,
       unitPrice: unitPrice ?? this.unitPrice,
@@ -80,6 +92,7 @@ class InvoiceItem extends Equatable {
     id,
     invoiceId,
     treatmentId,
+    treatmentName,
     description,
     quantity,
     unitPrice,

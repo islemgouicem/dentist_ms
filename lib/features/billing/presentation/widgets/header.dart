@@ -27,6 +27,7 @@ class BillingHeader extends StatelessWidget {
           onPressed: () => _showAddInvoiceDialog(context),
           icon: const Icon(Icons.add, size: 20),
           label: const Text('Nouvelle facture'),
+          style: ElevatedButton.styleFrom(minimumSize: const Size(0, 48)),
         ),
       ],
     );
@@ -40,28 +41,21 @@ class BillingHeader extends StatelessWidget {
 
     if (result != null && context.mounted) {
       // Create Invoice object from the dialog result
+      // Subtotal and total amounts are initially 0 and will be calculated after adding invoice items
       final invoice = Invoice(
         invoiceNumber: result['invoiceNumber'] as String,
         patientId: result['patientId'] as int?,
         status: result['status'] as String,
-        startDate: DateTime.parse(result['date'] as String),
-        dueDate: DateTime.parse(
-          result['date'] as String,
-        ).add(const Duration(days: 7)),
-        subtotalAmount: result['amount'] as double,
-        discountAmount: 0.0,
-        totalAmount: result['amount'] as double,
+        startDate: DateTime.parse(result['startDate'] as String),
+        dueDate: null, // Doctor will set this later from invoice details
+        subtotalAmount: 0.0,
+        discountAmount: result['discount'] as double,
+        totalAmount: 0.0,
         notes: result['notes'] as String,
       );
 
-      // Dispatch the AddInvoice event to the BLoC with treatment info
-      context.read<InvoiceBloc>().add(
-        AddInvoice(
-          invoice,
-          treatmentId: result['treatmentId'] as int?,
-          treatmentPrice: result['amount'] as double,
-        ),
-      );
+      // Dispatch the AddInvoice event to the BLoC
+      context.read<InvoiceBloc>().add(AddInvoice(invoice));
     }
   }
 }
