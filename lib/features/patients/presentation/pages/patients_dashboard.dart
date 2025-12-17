@@ -29,8 +29,7 @@ class _PatientsDashboardState extends State<PatientsDashboard> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _contactController = TextEditingController();
   final TextEditingController _dateOfBirthController = TextEditingController();
-  final TextEditingController _lastVisitController = TextEditingController();
-  final TextEditingController _upcomingController = TextEditingController();
+  String _genderValue = 'Female';
   final TextEditingController _insuranceProviderController =
       TextEditingController();
   final TextEditingController _allergiesController = TextEditingController();
@@ -514,7 +513,8 @@ class _PatientsDashboardState extends State<PatientsDashboard> {
       onSelectChanged: (_) {
         onRowTap({
           'name': displayName,
-          'id': idString,
+          'id': patient.id, // pass numeric id for persistence
+          'idString': idString,
           'gender': patient.gender ?? '',
           'dob': patient.dateOfBirth != null
               ? patient.dateOfBirth!.toIso8601String().split('T').first
@@ -619,15 +619,17 @@ class _PatientsDashboardState extends State<PatientsDashboard> {
             decoration: BoxDecoration(
               color: status.toLowerCase() == 'active'
                   ? const Color(0xff00BC7D)
-                  : AppColors.primary,
-              borderRadius: BorderRadius.circular(16),
+                  : Colors.grey,
+              borderRadius: BorderRadius.circular(10),
             ),
             child: Text(
               status.toUpperCase(),
               style: TextStyle(
-                color: AppColors.white,
+                color: status.toLowerCase() == 'active' 
+                ? AppColors.white
+                : AppColors.textDark,
                 fontSize: 12,
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w600,
               ),
             ),
           ),
@@ -636,7 +638,7 @@ class _PatientsDashboardState extends State<PatientsDashboard> {
           Text(
             balanceVal == 0 ? '\$0' : '\$$balanceVal',
             style: TextStyle(
-              color: balanceVal == 0 ? Colors.grey : Colors.red,
+              color: balanceVal == 0 ? Colors.green : Colors.red,
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -717,7 +719,8 @@ class _PatientsDashboardState extends State<PatientsDashboard> {
       ),
     );
   }
-/*
+
+  /*
   String _getInitials(String name) {
     final parts = name.trim().split(RegExp('\\s+'));
     if (parts.isEmpty) return 'NN';
@@ -733,8 +736,7 @@ class _PatientsDashboardState extends State<PatientsDashboard> {
     _emailController.clear();
     _contactController.clear();
     _dateOfBirthController.clear();
-    _lastVisitController.clear();
-    _upcomingController.clear();
+    _genderValue = 'Female';
     _allergiesController.clear();
     _statusValue = 'active';
     _bloodType = 'O+';
@@ -834,12 +836,43 @@ class _PatientsDashboardState extends State<PatientsDashboard> {
                         Expanded(
                           child: TextFormField(
                             controller: _dateOfBirthController,
-                            decoration: const InputDecoration(
+                            decoration: InputDecoration(
                               labelText: 'Date of Birth (YYYY-MM-DD)',
+                              hintText: 'YYYY-MM-DD or pick from calendar',
+                              suffixIcon: IconButton(
+                                icon: const Icon(Icons.calendar_today),
+                                onPressed: () async {
+                                  final today = DateTime.now();
+                                  final initial =
+                                      DateTime.tryParse(
+                                        _dateOfBirthController.text,
+                                      ) ??
+                                      DateTime(today.year - 25);
+                                  final picked = await showDatePicker(
+                                    context: context,
+                                    initialDate: initial,
+                                    firstDate: DateTime(1900),
+                                    lastDate: today,
+                                  );
+                                  if (picked != null) {
+                                    _dateOfBirthController.text = picked
+                                        .toIso8601String()
+                                        .split('T')
+                                        .first;
+                                  }
+                                },
+                              ),
                             ),
                             validator: (value) {
                               if (value == null || value.trim().isEmpty)
                                 return 'Date of Birth is required';
+                              final v = value.trim();
+                              final ok =
+                                  RegExp(r'^\d{4}-\d{2}-\d{2}$').hasMatch(v) &&
+                                  DateTime.tryParse(v) != null;
+                              if (!ok)
+                                return 'Enter a valid date as YYYY-MM-DD';
+                              // Note: simple check - YYYY-MM-DD
                               return null;
                             },
                           ),
@@ -850,20 +883,24 @@ class _PatientsDashboardState extends State<PatientsDashboard> {
                     Row(
                       children: [
                         Expanded(
-                          child: TextFormField(
-                            controller: _lastVisitController,
+                          child: DropdownButtonFormField<String>(
+                            initialValue: _genderValue,
                             decoration: const InputDecoration(
-                              labelText: 'Last visit (YYYY-MM-DD)',
+                              labelText: 'Gender',
                             ),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: TextFormField(
-                            controller: _upcomingController,
-                            decoration: const InputDecoration(
-                              labelText: 'Upcoming (YYYY-MM-DD or -)',
-                            ),
+                            items: const [
+                              DropdownMenuItem(
+                                value: 'Female',
+                                child: Text('Female'),
+                              ),
+                              DropdownMenuItem(
+                                value: 'Male',
+                                child: Text('Male'),
+                              ),
+                            ],
+                            onChanged: (v) {
+                              if (v != null) setState(() => _genderValue = v);
+                            },
                           ),
                         ),
                       ],
@@ -1004,7 +1041,7 @@ class _PatientsDashboardState extends State<PatientsDashboard> {
                     final patient = Patient(
                       firstName: firstName,
                       lastName: lastName,
-                      gender: null,
+                      gender: _genderValue,
                       dateOfBirth: dob,
                       bloodType: _bloodType,
                       phone1: _contactController.text.trim(),

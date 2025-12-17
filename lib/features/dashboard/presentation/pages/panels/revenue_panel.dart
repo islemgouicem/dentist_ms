@@ -9,7 +9,11 @@ import '../widgets/treatment_row.dart';
 class RevenuePanel extends StatelessWidget {
   final double screenWidth;
   final double screenHeight;
-  const RevenuePanel({super.key, required this.screenWidth, required this.screenHeight});
+  const RevenuePanel({
+    super.key,
+    required this.screenWidth,
+    required this.screenHeight,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -122,43 +126,40 @@ class RevenuePanel extends StatelessWidget {
                         PointerDeviceKind.trackpad,
                       },
                     ),
-                    child: Scrollbar(
-                      thumbVisibility: true,
-                      child: ListView(
-                        padding: EdgeInsets.zero,
-                        children: const [
-                          TreatmentRow(
-                            title: 'Nettoyage dentaire',
-                            amount: '\$21 750',
-                            progress: 0.18,
-                            count: 145,
-                          ),
-                          TreatmentRow(
-                            title: 'Obturation',
-                            amount: '\$24 500',
-                            progress: 0.12,
-                            count: 98,
-                          ),
-                          TreatmentRow(
-                            title: 'Traitement orthodontique',
-                            amount: '\$195 000',
-                            progress: 1.00,
-                            count: 65,
-                          ),
-                          TreatmentRow(
-                            title: 'Traitement radiculaire',
-                            amount: '\$50 400',
-                            progress: 0.32,
-                            count: 42,
-                          ),
-                          TreatmentRow(
-                            title: 'Implant dentaire',
-                            amount: '\$70 000',
-                            progress: 0.28,
-                            count: 28,
-                          ),
-                        ],
-                      ),
+                    child: ListView(
+                      padding: EdgeInsets.zero,
+                      children: const [
+                        TreatmentRow(
+                          title: 'Nettoyage dentaire',
+                          amount: '\$21 750',
+                          progress: 0.18,
+                          count: 145,
+                        ),
+                        TreatmentRow(
+                          title: 'Obturation',
+                          amount: '\$24 500',
+                          progress: 0.12,
+                          count: 98,
+                        ),
+                        TreatmentRow(
+                          title: 'Traitement orthodontique',
+                          amount: '\$195 000',
+                          progress: 1.00,
+                          count: 65,
+                        ),
+                        TreatmentRow(
+                          title: 'Traitement radiculaire',
+                          amount: '\$50 400',
+                          progress: 0.32,
+                          count: 42,
+                        ),
+                        TreatmentRow(
+                          title: 'Implant dentaire',
+                          amount: '\$70 000',
+                          progress: 0.28,
+                          count: 28,
+                        ),
+                      ],
                     ),
                   ),
                 ),
@@ -195,11 +196,15 @@ class RevenuePanel extends StatelessWidget {
       gridData: FlGridData(
         show: true,
         drawVerticalLine: true,
-        getDrawingHorizontalLine: (_) => FlLine(color: gridPaint.color, strokeWidth: 1),
-        getDrawingVerticalLine: (_) => FlLine(color: gridPaint.color, strokeWidth: 1),
+        getDrawingHorizontalLine: (_) =>
+            FlLine(color: gridPaint.color, strokeWidth: 1),
+        getDrawingVerticalLine: (_) =>
+            FlLine(color: gridPaint.color, strokeWidth: 1),
       ),
       titlesData: FlTitlesData(
-        rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+        rightTitles: const AxisTitles(
+          sideTitles: SideTitles(showTitles: false),
+        ),
         topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
         leftTitles: AxisTitles(
           sideTitles: SideTitles(
@@ -242,10 +247,7 @@ class RevenuePanel extends StatelessWidget {
           getTooltipItems: (touchedSpots) => touchedSpots.map((s) {
             return LineTooltipItem(
               '\$${s.y.toInt()}',
-              const TextStyle(
-                color: kTextPrimary,
-                fontWeight: FontWeight.w700,
-              ),
+              const TextStyle(color: kTextPrimary, fontWeight: FontWeight.w700),
             );
           }).toList(),
         ),
