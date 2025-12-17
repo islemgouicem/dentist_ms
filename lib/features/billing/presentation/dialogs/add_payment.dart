@@ -181,7 +181,7 @@ class _AddPaymentDialogState extends State<AddPaymentDialog> {
           controller: _amountController,
           decoration: _inputDecoration(
             '0.00',
-          ).copyWith(prefixText: '\$ ', prefixStyle: AppTextStyles.body1),
+          ).copyWith(suffixText: '\DA ', suffixStyle: AppTextStyles.body1),
           keyboardType: TextInputType.number,
           validator: (value) {
             if (value == null || value.isEmpty) {

@@ -2,11 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:dentist_ms/core/constants/app_colors.dart';
 import 'package:dentist_ms/core/constants/app_text_styles.dart';
 import 'package:intl/intl.dart';
-import 'status_badge.dart';
 import 'table_wrapper.dart';
 import '../../utils/billing_responsive_helper.dart';
 import '../../models/invoice.dart';
-import 'invoice_details.dart';
+import '../pages/invoice_details.dart';
 
 class BillingTableControls extends StatelessWidget {
   final BillingResponsiveHelper responsive;
@@ -158,7 +157,7 @@ class InvoiceTable extends StatelessWidget {
               invoice.invoiceNumber ?? '',
               style: AppTextStyles.body1.copyWith(
                 fontWeight: FontWeight.w600,
-                color: AppColors.primary,
+                color: AppColors.textPrimary,
               ),
             ),
             Text(
@@ -170,13 +169,13 @@ class InvoiceTable extends StatelessWidget {
               style: AppTextStyles.body1.copyWith(color: AppColors.textPrimary),
             ),
             Text(
-              '\$${totalAmount.toStringAsFixed(0)}',
+              '${totalAmount.toStringAsFixed(0)} DA',
               style: AppTextStyles.body1.copyWith(
                 fontWeight: FontWeight.w600,
                 color: AppColors.textPrimary,
               ),
             ),
-            Center(child: _buildStatusBadge(status)),
+            _buildStatusBadge(status),
           ],
         ),
       );
@@ -207,7 +206,7 @@ class InvoiceTable extends StatelessWidget {
 
   String _formatDate(DateTime? date) {
     if (date == null) return '';
-    return DateFormat('yyyy-MM-dd').format(date);
+    return DateFormat('dd-MM-yyyy').format(date);
   }
 
   Color _getStatusColor(String status) {

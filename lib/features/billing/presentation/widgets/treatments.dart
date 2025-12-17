@@ -6,9 +6,10 @@ import 'table_wrapper.dart';
 import '../../utils/billing_responsive_helper.dart';
 import '../dialogs/add_treatments.dart';
 import '../dialogs/treatment_details_dialog.dart';
+import '../dialogs/delete_confirmation_dialog.dart';
+import 'billing_controls.dart';
 import '../../bloc/treatment_bloc.dart';
 import '../../bloc/treatment_event.dart';
-import '../../bloc/treatment_state.dart';
 import '../../models/treatment.dart';
 
 class BillingTreatmentCatalogControls extends StatelessWidget {
@@ -25,61 +26,20 @@ class BillingTreatmentCatalogControls extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.all(responsive.controlsPadding),
-      child: Row(
-        children: [
-          Expanded(child: _buildSearchField()),
-          const SizedBox(width: 16),
-          _buildAddButton(context),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSearchField() {
-    return TextField(
-      onChanged: onSearchChanged,
-      decoration: InputDecoration(
+    return BillingControls(
+      responsive: responsive,
+      leftWidget: BillingSearchField(
         hintText: 'Rechercher des traitements...',
-        hintStyle: AppTextStyles.body1.copyWith(color: AppColors.textSecondary),
-        prefixIcon: Icon(
-          Icons.search,
-          size: 20,
-          color: AppColors.textSecondary,
-        ),
-        filled: true,
-        fillColor: AppColors.cardgrey,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide(color: AppColors.border),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide(color: AppColors.border),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide(color: AppColors.primary, width: 2),
-        ),
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 12,
-        ),
+        onChanged: onSearchChanged,
       ),
-    );
-  }
-
-  Widget _buildAddButton(BuildContext context) {
-    return ElevatedButton.icon(
-      onPressed: () async {
+      buttonText: 'Ajouter un Traitement',
+      onButtonPressed: () async {
         final result = await showDialog(
           context: context,
           builder: (context) => const AddTreatmentDialog(),
         );
 
         if (result != null && context.mounted) {
-          // Create Treatment object from the dialog result
           final treatment = Treatment(
             code: result['code'] as String?,
             name: result['name'] as String,
@@ -87,19 +47,10 @@ class BillingTreatmentCatalogControls extends StatelessWidget {
             basePrice: result['price'] as double,
           );
 
-          // Dispatch the AddTreatment event to the BLoC
           context.read<TreatmentBloc>().add(AddTreatment(treatment));
           onAddTreatment();
         }
       },
-      icon: const Icon(Icons.add, size: 20),
-      label: Text(
-        'Ajouter un Treatment',
-        style: AppTextStyles.body1.copyWith(
-          color: Colors.white,
-          fontWeight: FontWeight.w600,
-        ),
-      ),
     );
   }
 }
@@ -142,7 +93,7 @@ class BillingTreatmentCatalogTable extends StatelessWidget {
             ),
           ),
           Text(
-            '\$${treatment.basePrice?.toStringAsFixed(0) ?? '0'}',
+            '${treatment.basePrice?.toStringAsFixed(0) ?? '0'} DA',
             style: AppTextStyles.body1.copyWith(
               fontWeight: FontWeight.w600,
               color: Colors.green,
@@ -234,55 +185,9 @@ class BillingTreatmentCatalogTable extends StatelessWidget {
   Future<void> _handleDelete(BuildContext context, Treatment treatment) async {
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Row(
-          children: [
-            Icon(Icons.warning_amber_rounded, color: Colors.orange, size: 28),
-            const SizedBox(width: 12),
-            Text('Confirmer la suppression', style: AppTextStyles.headline2),
-          ],
-        ),
-        content: Text(
-          'Êtes-vous sûr de vouloir supprimer le traitement "${treatment.name}" ?\n\nCette action est irréversible.',
-          style: AppTextStyles.body1,
-        ),
-        actions: [
-          OutlinedButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            style: OutlinedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              side: BorderSide(color: AppColors.border),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-            child: Text(
-              'Annuler',
-              style: AppTextStyles.body1.copyWith(
-                color: AppColors.textPrimary,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-            child: Text(
-              'Supprimer',
-              style: AppTextStyles.body1.copyWith(
-                color: Colors.white,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-        ],
+      builder: (context) => DeleteConfirmationDialog(
+        itemName: treatment.name ?? 'N/A',
+        itemType: 'le traitement',
       ),
     );
 

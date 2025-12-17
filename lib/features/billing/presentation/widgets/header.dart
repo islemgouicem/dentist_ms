@@ -27,6 +27,7 @@ class BillingHeader extends StatelessWidget {
           onPressed: () => _showAddInvoiceDialog(context),
           icon: const Icon(Icons.add, size: 20),
           label: const Text('Nouvelle facture'),
+          style: ElevatedButton.styleFrom(minimumSize: const Size(0, 48)),
         ),
       ],
     );

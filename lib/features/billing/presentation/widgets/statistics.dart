@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:dentist_ms/core/constants/app_colors.dart';
-import 'package:dentist_ms/core/constants/app_text_styles.dart';
 import '../../utils/billing_responsive_helper.dart';
 
 class BillingStatCard extends StatefulWidget {
@@ -96,7 +95,7 @@ class BillingStatisticsSection extends StatelessWidget {
   final double totalRevenue;
   final double pendingPayments;
   final double overdue;
-  final double thisMonth;
+  final double netProfit;
 
   const BillingStatisticsSection({
     Key? key,
@@ -104,7 +103,7 @@ class BillingStatisticsSection extends StatelessWidget {
     required this.totalRevenue,
     required this.pendingPayments,
     required this.overdue,
-    required this.thisMonth,
+    required this.netProfit,
   }) : super(key: key);
 
   @override
@@ -138,27 +137,27 @@ class BillingStatisticsSection extends StatelessWidget {
     return [
       BillingStatCard(
         title: 'Revenu total',
-        value: '\$${_formatCurrency(totalRevenue)}',
+        value: '${_formatCurrency(totalRevenue)} DA',
         color: AppColors.cardGreen,
         icon: Icons.attach_money,
       ),
       BillingStatCard(
         title: 'Paiements en attente',
-        value: '\$${_formatCurrency(pendingPayments)}',
+        value: '${_formatCurrency(pendingPayments)} DA',
         color: AppColors.cardOrange,
         icon: Icons.pending_actions,
       ),
       BillingStatCard(
         title: 'En retard',
-        value: '\$${_formatCurrency(overdue)}',
+        value: '${_formatCurrency(overdue)} DA',
         color: AppColors.statusCancelled,
         icon: Icons.warning_amber,
       ),
       BillingStatCard(
-        title: 'Ce mois-ci',
-        value: '\$${_formatCurrency(thisMonth)}',
-        color: AppColors.cardBlue,
-        icon: Icons.calendar_today,
+        title: 'Profit Net',
+        value: '${_formatCurrency(netProfit)} DA',
+        color: AppColors.cardGreen,
+        icon: Icons.trending_up,
       ),
     ];
   }

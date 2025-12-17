@@ -44,7 +44,7 @@ class TreatmentDetailsDialog extends StatelessWidget {
                       icon: Icons.attach_money,
                       label: 'Prix',
                       value:
-                          '\$${treatment.basePrice?.toStringAsFixed(2) ?? '0.00'}',
+                          '${treatment.basePrice?.toStringAsFixed(2) ?? '0.00'} DA',
                       color: Colors.green,
                       isHighlighted: true,
                     ),

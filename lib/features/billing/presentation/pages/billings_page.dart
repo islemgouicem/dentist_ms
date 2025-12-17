@@ -110,7 +110,7 @@ class _BillingsPageState extends State<BillingsPage>
   double _totalRevenue = 0.0;
   double _pendingPayments = 0.0;
   double _overdue = 0.0;
-  double _thisMonth = 0.0;
+  double _netProfit = 0.0;
 
   @override
   void initState() {
@@ -128,37 +128,47 @@ class _BillingsPageState extends State<BillingsPage>
     super.dispose();
   }
 
-  void _calculateStatistics(List<Invoice> invoices) {
+  void _calculateStatistics(
+    List<Invoice> invoices,
+    List<Payment> payments,
+    List<Expense> expenses,
+  ) {
     double totalRevenue = 0.0;
     double pendingPayments = 0.0;
     double overdue = 0.0;
-    double thisMonth = 0.0;
+    double totalExpenses = 0.0;
 
     final now = DateTime.now();
-    final currentMonth = now.month;
-    final currentYear = now.year;
 
+    // Calculate total revenue from all payments (all-time)
+    for (var payment in payments) {
+      totalRevenue += payment.amount ?? 0.0;
+    }
+
+    // Calculate total expenses
+    for (var expense in expenses) {
+      totalExpenses += expense.amount ?? 0.0;
+    }
+
+    // Calculate pending payments and overdue amounts
     for (var invoice in invoices) {
-      final amount = invoice.totalAmount ?? 0.0;
-      final paid = invoice.status == 'paid'
-          ? (invoice.totalAmount ?? 0.0)
-          : (invoice.status == 'partial'
-                ? ((invoice.totalAmount ?? 0.0) / 2)
-                : 0.0);
-      final balance = amount - paid;
-      final status = invoice.status ?? '';
-      final invoiceDate = invoice.startDate ?? DateTime.now();
+      final totalAmount = invoice.totalAmount ?? 0.0;
 
-      totalRevenue += paid;
-      if (status == 'partial' || status == 'unpaid') {
+      // Calculate actual payments received for this invoice
+      final actualPayments = payments
+          .where((payment) => payment.invoiceId == invoice.id)
+          .fold(0.0, (sum, payment) => sum + (payment.amount ?? 0.0));
+
+      final balance = totalAmount - actualPayments;
+
+      // Only count positive balances as pending
+      if (balance > 0) {
         pendingPayments += balance;
-      }
-      if (status == 'unpaid') {
-        overdue += balance;
-      }
-      if (invoiceDate.month == currentMonth &&
-          invoiceDate.year == currentYear) {
-        thisMonth += paid;
+
+        // Check if this balance is overdue
+        if (invoice.dueDate != null && invoice.dueDate!.isBefore(now)) {
+          overdue += balance;
+        }
       }
     }
 
@@ -166,7 +176,7 @@ class _BillingsPageState extends State<BillingsPage>
       _totalRevenue = totalRevenue;
       _pendingPayments = pendingPayments;
       _overdue = overdue;
-      _thisMonth = thisMonth;
+      _netProfit = totalRevenue - totalExpenses;
     });
   }
 
@@ -250,7 +260,7 @@ class _BillingsPageState extends State<BillingsPage>
                     totalRevenue: _totalRevenue,
                     pendingPayments: _pendingPayments,
                     overdue: _overdue,
-                    thisMonth: _thisMonth,
+                    netProfit: _netProfit,
                   ),
                   SizedBox(height: responsive.sectionSpacing),
                   _buildTabSection(responsive),
@@ -324,23 +334,33 @@ class _BillingsPageState extends State<BillingsPage>
 
   Widget _buildInvoicesTab(BillingResponsiveHelper responsive) {
     return BlocBuilder<InvoiceBloc, InvoiceState>(
-      builder: (context, state) {
+      builder: (context, invoiceState) {
         List<Invoice> invoices = [];
 
-        if (state is InvoicesLoadSuccess) {
-          invoices = state.invoices;
-          // Update statistics when invoices load
+        if (invoiceState is InvoicesLoadSuccess) {
+          invoices = invoiceState.invoices;
+
+          // Update statistics when invoices load - also need payments and expenses
           WidgetsBinding.instance.addPostFrameCallback((_) {
             if (mounted) {
-              _calculateStatistics(invoices);
+              final paymentState = context.read<PaymentBloc>().state;
+              final expenseState = context.read<ExpenseBloc>().state;
+              if (paymentState is PaymentsLoadSuccess &&
+                  expenseState is ExpensesLoadSuccess) {
+                _calculateStatistics(
+                  invoices,
+                  paymentState.payments,
+                  expenseState.expenses,
+                );
+              }
             }
           });
-        } else if (state is InvoicesLoadInProgress) {
+        } else if (invoiceState is InvoicesLoadInProgress) {
           return const Center(child: CircularProgressIndicator());
-        } else if (state is InvoicesOperationFailure) {
+        } else if (invoiceState is InvoicesOperationFailure) {
           return Center(
             child: Text(
-              'Erreur: ${state.message}',
+              'Erreur: ${invoiceState.message}',
               style: const TextStyle(color: Colors.red),
             ),
           );
@@ -424,6 +444,22 @@ class _BillingsPageState extends State<BillingsPage>
 
         if (state is ExpensesLoadSuccess) {
           expenses = state.expenses;
+
+          // Update statistics when expenses load - also need invoices and payments
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) {
+              final invoiceState = context.read<InvoiceBloc>().state;
+              final paymentState = context.read<PaymentBloc>().state;
+              if (invoiceState is InvoicesLoadSuccess &&
+                  paymentState is PaymentsLoadSuccess) {
+                _calculateStatistics(
+                  invoiceState.invoices,
+                  paymentState.payments,
+                  expenses,
+                );
+              }
+            }
+          });
         } else if (state is ExpensesLoadInProgress) {
           return const Center(child: CircularProgressIndicator());
         } else if (state is ExpensesOperationFailure) {
@@ -452,6 +488,7 @@ class _BillingsPageState extends State<BillingsPage>
                     '',
                 'description': expense.description ?? '',
                 'category': expense.categoryName ?? '-',
+                'categoryId': expense.categoryId,
                 'amount': expense.amount ?? 0.0,
               },
             )
@@ -494,6 +531,22 @@ class _BillingsPageState extends State<BillingsPage>
 
         if (state is PaymentsLoadSuccess) {
           payments = state.payments;
+
+          // Update statistics when payments load - also need invoices and expenses
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) {
+              final invoiceState = context.read<InvoiceBloc>().state;
+              final expenseState = context.read<ExpenseBloc>().state;
+              if (invoiceState is InvoicesLoadSuccess &&
+                  expenseState is ExpensesLoadSuccess) {
+                _calculateStatistics(
+                  invoiceState.invoices,
+                  payments,
+                  expenseState.expenses,
+                );
+              }
+            }
+          });
         } else if (state is PaymentsLoadInProgress) {
           return const Center(child: CircularProgressIndicator());
         } else if (state is PaymentsOperationFailure) {

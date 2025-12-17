@@ -261,7 +261,7 @@ class _AddInvoiceItemDialogState extends State<AddInvoiceItemDialog> {
           controller: _unitPriceController,
           decoration: _inputDecoration(
             '0.00',
-          ).copyWith(prefixText: '\$ ', prefixStyle: AppTextStyles.body1),
+          ).copyWith(suffixText: '\DA ', suffixStyle: AppTextStyles.body1),
           keyboardType: TextInputType.number,
           validator: (value) {
             if (value == null || value.isEmpty) {
@@ -297,7 +297,7 @@ class _AddInvoiceItemDialogState extends State<AddInvoiceItemDialog> {
             ),
           ),
           Text(
-            '\$${_totalPrice.toStringAsFixed(2)}',
+            '${_totalPrice.toStringAsFixed(2)} DA',
             style: AppTextStyles.body1.copyWith(
               fontSize: 20,
               fontWeight: FontWeight.bold,

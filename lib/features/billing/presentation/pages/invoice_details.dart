@@ -15,6 +15,7 @@ import 'package:dentist_ms/features/billing/repositories/invoice_repository.dart
 import 'package:dentist_ms/features/billing/repositories/payment_repository.dart';
 import 'package:intl/intl.dart';
 import '../dialogs/add_invoice_item.dart';
+import '../dialogs/delete_confirmation_dialog.dart';
 import 'package:dentist_ms/features/billing/data/invoice_remote.dart';
 import 'package:dentist_ms/features/billing/data/invoice_item_remote.dart';
 import 'package:dentist_ms/features/billing/data/payment_remote.dart';
@@ -501,14 +502,15 @@ class _InvoiceDetailScreenState extends State<InvoiceDetailScreen> {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
           child: Text(
-            '\$${item.unitPrice?.toStringAsFixed(2) ?? '0.00'}',
+            '${item.unitPrice?.toStringAsFixed(2) ?? '0.00'} DA',
+
             style: AppTextStyles.body1.copyWith(color: AppColors.textPrimary),
           ),
         ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
           child: Text(
-            '\$${item.totalPrice?.toStringAsFixed(2) ?? '0.00'}',
+            '${item.totalPrice?.toStringAsFixed(2) ?? '0.00'} DA',
             style: AppTextStyles.body1.copyWith(
               color: AppColors.textPrimary,
               fontWeight: FontWeight.w600,
@@ -544,19 +546,20 @@ class _InvoiceDetailScreenState extends State<InvoiceDetailScreen> {
         children: [
           _buildSummaryRow(
             'Sous-total',
-            '\$${invoice.subtotalAmount?.toStringAsFixed(2) ?? '0.00'}',
+            '${invoice.subtotalAmount?.toStringAsFixed(2) ?? '0.00'} DA',
             false,
           ),
           if (invoice.discountAmount != null && invoice.discountAmount! > 0)
             _buildSummaryRow(
               'Remise',
-              '-\$${invoice.discountAmount?.toStringAsFixed(2) ?? '0.00'}',
+              "-${invoice.discountAmount?.toStringAsFixed(2) ?? '0.00'} DA",
+
               false,
             ),
           const Divider(height: 24),
           _buildSummaryRow(
             'Total',
-            '\$${invoice.totalAmount?.toStringAsFixed(2) ?? '0.00'}',
+            '${invoice.totalAmount?.toStringAsFixed(2) ?? '0.00'} DA',
             true,
           ),
         ],
@@ -616,22 +619,9 @@ class _InvoiceDetailScreenState extends State<InvoiceDetailScreen> {
   void _deleteItem(InvoiceItem item) async {
     final confirm = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Confirmer la suppression'),
-        content: const Text('Voulez-vous vraiment supprimer cet article?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Annuler'),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.statusCancelled,
-            ),
-            child: const Text('Supprimer'),
-          ),
-        ],
+      builder: (context) => DeleteConfirmationDialog(
+        itemName: item.treatmentName ?? 'Cet article',
+        itemType: 'l\'article de facture',
       ),
     );
 
