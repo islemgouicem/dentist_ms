@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:dentist_ms/features/patients/bloc/patient_bloc.dart';
+import 'package:dentist_ms/features/patients/bloc/patient_event.dart';
+import 'package:dentist_ms/features/patients/bloc/patient_state.dart';
+import 'package:dentist_ms/features/patients/models/patient.dart';
 
 // ============ COLORS (LIGHT THEME) ============
 class AppColors {
@@ -105,6 +110,8 @@ class PatientDetailScreen extends StatefulWidget {
 class _PatientDetailScreenState extends State<PatientDetailScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
+  bool _awaitingSave = false; // to track save operation
+  bool _awaitingDelete = false; // to track delete operation
 
   @override
   void initState() {
@@ -119,6 +126,16 @@ class _PatientDetailScreenState extends State<PatientDetailScreen>
   }
 
   void _handleQuickAction(String actionName) {
+    if (actionName == 'Edit Profile') {
+      _showEditProfileDialog();
+      return;
+    }
+
+    if (actionName == 'Delete Patient') {
+      _confirmDelete();
+      return;
+    }
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -159,7 +176,7 @@ class _PatientDetailScreenState extends State<PatientDetailScreen>
     final String gender = widget.patient['gender'] ?? 'N/A';
     final String age = widget.patient['age']?.toString() ?? '0';
     final String dob = widget.patient['dob'] ?? 'N/A';
-    final String patientId = widget.patient['id'] ?? 'N/A';
+    final String patientId = widget.patient['id']?.toString() ?? 'N/A';
 
     final Map<String, dynamic> stats = widget.patient['stats'] ?? {};
     final String totalVisits = stats['visits']?.toString() ?? '0';
@@ -173,48 +190,76 @@ class _PatientDetailScreenState extends State<PatientDetailScreen>
     // List of history records
     final List<dynamic> dentalHistory = widget.patient['dentalHistory'] ?? [];
 
-    return Scaffold(
-      body: SafeArea(
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            double horizontalPadding = constraints.maxWidth < 1366
-                ? 24
-                : (constraints.maxWidth < 1920 ? 32 : 48);
-            double verticalPadding = constraints.maxWidth < 1366 ? 24 : 32;
+    return BlocListener<PatientBloc, PatientState>(
+      listener: (context, state) {
+        if (state is PatientsLoadSuccess && _awaitingSave) {
+          setState(() => _awaitingSave = false);
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('Profile saved')));
+        } else if (state is PatientsOperationFailure && _awaitingSave) {
+          setState(() => _awaitingSave = false);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Save failed: ${state.message}')),
+          );
 
-            return SingleChildScrollView(
-              padding: EdgeInsets.symmetric(
-                horizontal: horizontalPadding,
-                vertical: verticalPadding,
-              ),
-              child: Center(
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 1600),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildHeader(name, gender, age, dob, patientId),
-                      SizedBox(height: constraints.maxWidth < 1366 ? 24 : 32),
-                      _buildStatsCards(
-                        totalVisits,
-                        lastVisit,
-                        primaryDentist,
-                        constraints,
-                      ),
-                      SizedBox(height: constraints.maxWidth < 1366 ? 24 : 32),
-                      _buildMainContent(
-                        phone,
-                        email,
-                        address,
-                        dentalHistory,
-                        constraints,
-                      ),
-                    ],
+        }
+
+        if (state is PatientsLoadSuccess && _awaitingDelete) {
+          setState(() => _awaitingDelete = false);
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Patient deleted')),
+          );
+        } else if (state is PatientsOperationFailure && _awaitingDelete) {
+          setState(() => _awaitingDelete = false);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Delete failed: ${state.message}')),
+          );
+        }
+      },
+      child: Scaffold(
+        body: SafeArea(
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              double horizontalPadding = constraints.maxWidth < 1366
+                  ? 24
+                  : (constraints.maxWidth < 1920 ? 32 : 48);
+              double verticalPadding = constraints.maxWidth < 1366 ? 24 : 32;
+
+              return SingleChildScrollView(
+                padding: EdgeInsets.symmetric(
+                  horizontal: horizontalPadding,
+                  vertical: verticalPadding,
+                ),
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 1600),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildHeader(name, gender, age, dob, patientId),
+                        SizedBox(height: constraints.maxWidth < 1366 ? 24 : 32),
+                        _buildStatsCards(
+                          totalVisits,
+                          lastVisit,
+                          primaryDentist,
+                          constraints,
+                        ),
+                        SizedBox(height: constraints.maxWidth < 1366 ? 24 : 32),
+                        _buildMainContent(
+                          phone,
+                          email,
+                          address,
+                          dentalHistory,
+                          constraints,
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-            );
-          },
+              );
+            },
+          ),
         ),
       ),
     );
@@ -633,8 +678,307 @@ class _PatientDetailScreenState extends State<PatientDetailScreen>
             false,
             () => _handleQuickAction('Edit Profile'),
           ),
+          const SizedBox(height: 10),
+          _buildActionButton(
+            'Delete Patient',
+            Icons.delete_forever,
+            false,
+            () => _handleQuickAction('Delete Patient'),
+          ),
         ],
       ),
+    );
+  }
+
+  void _confirmDelete() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppColors.cardBackground,
+        title: const Text('Delete Patient', style: AppTextStyles.sectionTitle),
+        content: const Text('Are you sure you want to delete this patient? This action cannot be undone.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            onPressed: () {
+              Navigator.pop(context);
+
+              // Validate numeric id
+              final idValue = widget.patient['id'];
+              int? idInt;
+              if (idValue == null) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Cannot delete: patient has no id')),
+                );
+                return;
+              }
+              if (idValue is int) idInt = idValue;
+              else idInt = int.tryParse(idValue.toString());
+
+              if (idInt == null) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Cannot delete: invalid patient id')),
+                );
+                return;
+              }
+
+              setState(() => _awaitingDelete = true);
+              context.read<PatientBloc>().add(DeletePatient(idInt));
+
+              // navigate back to list immediately; BlocListener will show result
+              widget.onBack();
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Deleting patient...')),
+              );
+            },
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showEditProfileDialog() {
+    final _formKey = GlobalKey<FormState>();
+    final nameController = TextEditingController(
+      text: widget.patient['name'] ?? '',
+    );
+    final phoneController = TextEditingController(
+      text: widget.patient['phone'] ?? '',
+    );
+    final emailController = TextEditingController(
+      text: widget.patient['email'] ?? '',
+    );
+    final addressController = TextEditingController(
+      text: widget.patient['address'] ?? '',
+    );
+    final List<String> _genders = ['Female', 'Male', 'Other'];
+    final rawGender = (widget.patient['gender'] ?? '').toString();
+    String genderValue = _genders.firstWhere(
+      (g) => g.toLowerCase() == rawGender.toLowerCase(),
+      orElse: () => _genders.first,
+    );
+    final dobController = TextEditingController(
+      text: widget.patient['dob'] ?? '',
+    );
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) => AlertDialog(
+            backgroundColor: AppColors.cardBackground,
+            title: const Text(
+              'Edit Profile',
+              style: AppTextStyles.sectionTitle,
+            ),
+            content: SizedBox(
+              width: 560,
+              child: SingleChildScrollView(
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      TextFormField(
+                        controller: nameController,
+                        decoration: const InputDecoration(
+                          labelText: 'Full name',
+                        ),
+                        validator: (v) {
+                          if (v == null || v.trim().isEmpty)
+                            return 'Name is required';
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: DropdownButtonFormField<String>(
+                              value: genderValue,
+                              decoration: const InputDecoration(
+                                labelText: 'Gender',
+                              ),
+                              items: const [
+                                DropdownMenuItem(
+                                  value: 'Female',
+                                  child: Text('Female'),
+                                ),
+                                DropdownMenuItem(
+                                  value: 'Male',
+                                  child: Text('Male'),
+                                ),
+                              ],
+                              onChanged: (v) {
+                                if (v != null) setState(() => genderValue = v);
+                              },
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: TextFormField(
+                              controller: dobController,
+                              decoration: InputDecoration(
+                                labelText: 'Date of Birth (YYYY-MM-DD)',
+                                hintText: 'YYYY-MM-DD or pick from calendar',
+                                suffixIcon: IconButton(
+                                  icon: const Icon(Icons.calendar_today),
+                                  onPressed: () async {
+                                    final today = DateTime.now();
+                                    final initial =
+                                        DateTime.tryParse(dobController.text) ??
+                                        DateTime(today.year - 25);
+                                    final picked = await showDatePicker(
+                                      context: context,
+                                      initialDate: initial,
+                                      firstDate: DateTime(1900),
+                                      lastDate: today,
+                                    );
+                                    if (picked != null) {
+                                      dobController.text = picked
+                                          .toIso8601String()
+                                          .split('T')
+                                          .first;
+                                      setState(() {});
+                                    }
+                                  },
+                                ),
+                              ),
+                              validator: (value) {
+                                if (value == null || value.trim().isEmpty)
+                                  return 'Date of Birth is required';
+                                final v = value.trim();
+                                final ok =
+                                    RegExp(
+                                      r'^\d{4}-\d{2}-\d{2}$',
+                                    ).hasMatch(v) &&
+                                    DateTime.tryParse(v) != null;
+                                if (!ok)
+                                  return 'Enter a valid date as YYYY-MM-DD';
+                                return null;
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        controller: phoneController,
+                        decoration: const InputDecoration(labelText: 'Phone'),
+                      ),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        controller: emailController,
+                        decoration: const InputDecoration(labelText: 'Email'),
+                        validator: (v) {
+                          if (v == null || v.trim().isEmpty) return null;
+                          final emailRegex = RegExp(
+                            r'^[^@\s]+@[^@\s]+\.[^@\s]+$',
+                          );
+                          if (!emailRegex.hasMatch(v.trim()))
+                            return 'Enter a valid email';
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        controller: addressController,
+                        decoration: const InputDecoration(labelText: 'Address'),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Cancel'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  if (_formKey.currentState?.validate() ?? false) {
+                    final name = nameController.text.trim();
+                    final dobText = dobController.text.trim();
+                    DateTime? parsedDob;
+                    if (dobText.isNotEmpty &&
+                        DateTime.tryParse(dobText) != null) {
+                      parsedDob = DateTime.tryParse(dobText)!;
+                    }
+
+                    // Update in-memory map for immediate UI feedback
+                    widget.patient['name'] = name;
+                    widget.patient['gender'] = genderValue;
+                    widget.patient['phone'] = phoneController.text.trim();
+                    widget.patient['email'] = emailController.text.trim();
+                    widget.patient['address'] = addressController.text.trim();
+                    if (parsedDob != null) {
+                      widget.patient['dob'] = parsedDob
+                          .toIso8601String()
+                          .split('T')
+                          .first;
+                      final today = DateTime.now();
+                      int age = today.year - parsedDob.year;
+                      if (today.month < parsedDob.month ||
+                          (today.month == parsedDob.month &&
+                              today.day < parsedDob.day))
+                        age--;
+                      widget.patient['age'] = age;
+                    }
+
+                    setState(() {});
+
+                    // Build Patient model and dispatch UpdatePatient to persist to Supabase
+                    final idValue = widget.patient['id'];
+                    int? idInt;
+                    if (idValue != null) {
+                      if (idValue is int)
+                        idInt = idValue;
+                      else
+                        idInt = int.tryParse(idValue.toString());
+                    }
+
+                    final parts = name.split(RegExp('\\s+'));
+                    final firstName = parts.isNotEmpty ? parts.first : '';
+                    final lastName = parts.length > 1
+                        ? parts.sublist(1).join(' ')
+                        : '';
+
+                    final updatedPatient = Patient(
+                      id: idInt,
+                      firstName: firstName,
+                      lastName: lastName,
+                      gender: genderValue,
+                      dateOfBirth: parsedDob,
+                      phone1: phoneController.text.trim(),
+                      email: emailController.text.trim(),
+                      address: addressController.text.trim(),
+                      status: widget.patient['status']?.toString() ?? 'active',
+                    );
+
+                    // Dispatch and let PatientBloc handle persistence and reload
+                    setState(() => _awaitingSave = true);
+                    context.read<PatientBloc>().add(
+                      UpdatePatient(updatedPatient),
+                    );
+
+                    Navigator.pop(context);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Saving profile...')),
+                    );
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.buttonBlue,
+                ),
+                child: const Text('Save'),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
