@@ -65,7 +65,12 @@ class BillingPaymentHistoryControls extends StatelessWidget {
           );
 
           context.read<PaymentBloc>().add(AddPayment(payment));
-          onAddPayment();
+
+          // Wait for the payment to be processed before calling callback
+          await Future.delayed(const Duration(milliseconds: 300));
+          if (context.mounted) {
+            onAddPayment();
+          }
         }
       },
     );

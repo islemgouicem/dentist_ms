@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:dentist_ms/core/constants/app_colors.dart';
 import 'package:dentist_ms/core/constants/app_text_styles.dart';
 import 'package:intl/intl.dart';
 import 'table_wrapper.dart';
 import '../../utils/billing_responsive_helper.dart';
 import '../../models/invoice.dart';
+import '../../bloc/invoice_bloc.dart';
+import '../../bloc/invoice_event.dart';
 import '../pages/invoice_details.dart';
 
 class BillingTableControls extends StatelessWidget {
@@ -140,14 +143,18 @@ class InvoiceTable extends StatelessWidget {
       final totalAmount = invoice.totalAmount ?? 0.0;
 
       return InkWell(
-        onTap: () {
+        onTap: () async {
           if (invoice.id != null) {
-            Navigator.of(context).push(
+            await Navigator.of(context).push(
               MaterialPageRoute(
                 builder: (context) =>
                     InvoiceDetailScreenWrapper(invoiceId: invoice.id!),
               ),
             );
+            // Reload invoices when returning to refresh totals
+            if (context.mounted) {
+              context.read<InvoiceBloc>().add(LoadInvoices());
+            }
           }
         },
         child: BillingTableRow(

@@ -238,36 +238,83 @@ class _BillingsPageState extends State<BillingsPage>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          final responsive = BillingResponsiveHelper(constraints.maxWidth);
+    return MultiBlocListener(
+      listeners: [
+        BlocListener<InvoiceBloc, InvoiceState>(
+          listener: (context, state) {
+            if (state is InvoicesLoadSuccess) {
+              _tryCalculateStatistics(context);
+            }
+          },
+        ),
+        BlocListener<PaymentBloc, PaymentState>(
+          listener: (context, state) async {
+            if (state is PaymentsLoadSuccess) {
+              _tryCalculateStatistics(context);
+              // Add small delay to ensure database transaction completes
+              await Future.delayed(const Duration(milliseconds: 100));
+              // Reload invoices to update status when payments change
+              if (context.mounted) {
+                context.read<InvoiceBloc>().add(LoadInvoices());
+              }
+            }
+          },
+        ),
+        BlocListener<ExpenseBloc, ExpenseState>(
+          listener: (context, state) {
+            if (state is ExpensesLoadSuccess) {
+              _tryCalculateStatistics(context);
+            }
+          },
+        ),
+      ],
+      child: Scaffold(
+        backgroundColor: AppColors.background,
+        body: LayoutBuilder(
+          builder: (context, constraints) {
+            final responsive = BillingResponsiveHelper(constraints.maxWidth);
 
-          return SingleChildScrollView(
-            child: Padding(
-              padding: responsive.pagePadding,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  BillingHeader(responsive: responsive),
-                  SizedBox(height: responsive.sectionSpacing),
-                  BillingStatisticsSection(
-                    responsive: responsive,
-                    totalRevenue: _totalRevenue,
-                    pendingPayments: _pendingPayments,
-                    overdue: _overdue,
-                    netProfit: _netProfit,
-                  ),
-                  SizedBox(height: responsive.sectionSpacing),
-                  _buildTabSection(responsive),
-                ],
+            return SingleChildScrollView(
+              child: Padding(
+                padding: responsive.pagePadding,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    BillingHeader(responsive: responsive),
+                    SizedBox(height: responsive.sectionSpacing),
+                    BillingStatisticsSection(
+                      responsive: responsive,
+                      totalRevenue: _totalRevenue,
+                      pendingPayments: _pendingPayments,
+                      overdue: _overdue,
+                      netProfit: _netProfit,
+                    ),
+                    SizedBox(height: responsive.sectionSpacing),
+                    _buildTabSection(responsive),
+                  ],
+                ),
               ),
-            ),
-          );
-        },
+            );
+          },
+        ),
       ),
     );
+  }
+
+  void _tryCalculateStatistics(BuildContext context) {
+    final invoiceState = context.read<InvoiceBloc>().state;
+    final paymentState = context.read<PaymentBloc>().state;
+    final expenseState = context.read<ExpenseBloc>().state;
+
+    if (invoiceState is InvoicesLoadSuccess &&
+        paymentState is PaymentsLoadSuccess &&
+        expenseState is ExpensesLoadSuccess) {
+      _calculateStatistics(
+        invoiceState.invoices,
+        paymentState.payments,
+        expenseState.expenses,
+      );
+    }
   }
 
   Widget _buildTabSection(BillingResponsiveHelper responsive) {
@@ -336,22 +383,6 @@ class _BillingsPageState extends State<BillingsPage>
 
         if (invoiceState is InvoicesLoadSuccess) {
           invoices = invoiceState.invoices;
-
-          // Update statistics when invoices load - also need payments and expenses
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (mounted) {
-              final paymentState = context.read<PaymentBloc>().state;
-              final expenseState = context.read<ExpenseBloc>().state;
-              if (paymentState is PaymentsLoadSuccess &&
-                  expenseState is ExpensesLoadSuccess) {
-                _calculateStatistics(
-                  invoices,
-                  paymentState.payments,
-                  expenseState.expenses,
-                );
-              }
-            }
-          });
         } else if (invoiceState is InvoicesLoadInProgress) {
           return const Center(child: CircularProgressIndicator());
         } else if (invoiceState is InvoicesOperationFailure) {
@@ -441,22 +472,6 @@ class _BillingsPageState extends State<BillingsPage>
 
         if (state is ExpensesLoadSuccess) {
           expenses = state.expenses;
-
-          // Update statistics when expenses load - also need invoices and payments
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (mounted) {
-              final invoiceState = context.read<InvoiceBloc>().state;
-              final paymentState = context.read<PaymentBloc>().state;
-              if (invoiceState is InvoicesLoadSuccess &&
-                  paymentState is PaymentsLoadSuccess) {
-                _calculateStatistics(
-                  invoiceState.invoices,
-                  paymentState.payments,
-                  expenses,
-                );
-              }
-            }
-          });
         } else if (state is ExpensesLoadInProgress) {
           return const Center(child: CircularProgressIndicator());
         } else if (state is ExpensesOperationFailure) {
@@ -528,22 +543,6 @@ class _BillingsPageState extends State<BillingsPage>
 
         if (state is PaymentsLoadSuccess) {
           payments = state.payments;
-
-          // Update statistics when payments load - also need invoices and expenses
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (mounted) {
-              final invoiceState = context.read<InvoiceBloc>().state;
-              final expenseState = context.read<ExpenseBloc>().state;
-              if (invoiceState is InvoicesLoadSuccess &&
-                  expenseState is ExpensesLoadSuccess) {
-                _calculateStatistics(
-                  invoiceState.invoices,
-                  payments,
-                  expenseState.expenses,
-                );
-              }
-            }
-          });
         } else if (state is PaymentsLoadInProgress) {
           return const Center(child: CircularProgressIndicator());
         } else if (state is PaymentsOperationFailure) {
@@ -589,8 +588,11 @@ class _BillingsPageState extends State<BillingsPage>
             children: [
               BillingPaymentHistoryControls(
                 responsive: responsive,
-                onAddPayment: () =>
-                    context.read<PaymentBloc>().add(LoadPayments()),
+                onAddPayment: () {
+                  context.read<PaymentBloc>().add(LoadPayments());
+                  // Also reload invoices to update status
+                  context.read<InvoiceBloc>().add(LoadInvoices());
+                },
                 selectedPatient: _selectedPatient,
                 onPatientChanged: (patient) {
                   setState(() {
