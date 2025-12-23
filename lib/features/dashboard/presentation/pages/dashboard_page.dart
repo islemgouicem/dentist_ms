@@ -41,7 +41,7 @@ class DashboardPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MultiBlocProvider(
-      providers:  [
+      providers: [
         BlocProvider(
           create: (context) => DashboardBloc(
             repository: SupabaseDashboardRepository(
@@ -98,20 +98,26 @@ class _DashboardPageContentState extends State<_DashboardPageContent> {
   @override
   void initState() {
     super.initState();
-    context.read<DashboardBloc>().add(LoadDashboardMetrics(dateRange: selectedRange));
+    context.read<DashboardBloc>().add(
+      LoadDashboardMetrics(dateRange: selectedRange),
+    );
   }
 
   void _onDateRangeChanged(String newRange) {
     setState(() => selectedRange = newRange);
-    
-    context.read<DashboardBloc>().add(LoadDashboardMetrics(dateRange: newRange));
-    
-    final year = newRange == 'Last Year' ? DateTime.now().year - 1 : DateTime.now().year;
-    
+
+    context.read<DashboardBloc>().add(
+      LoadDashboardMetrics(dateRange: newRange),
+    );
+
+    final year = newRange == 'Last Year'
+        ? DateTime.now().year - 1
+        : DateTime.now().year;
+
     context.read<RevenueBloc>().add(LoadRevenueChart(year: year));
     context.read<PatientsBloc>().add(LoadPatientsChart(year: year));
     context.read<TreatmentsBloc>().add(LoadTreatmentsChart());
-    context.read<PerformanceBloc>().add(LoadPerformanceChart(year:  year));
+    context.read<PerformanceBloc>().add(LoadPerformanceChart(year: year));
   }
 
   @override
@@ -126,16 +132,16 @@ class _DashboardPageContentState extends State<_DashboardPageContent> {
       backgroundColor: kBg,
       body: Center(
         child: ConstrainedBox(
-          constraints:  BoxConstraints(maxWidth: maxContentWidth),
-          child:  Padding(
+          constraints: BoxConstraints(maxWidth: maxContentWidth),
+          child: Padding(
             padding: EdgeInsets.fromLTRB(
               isMobile ? 8 : 24,
               isMobile ? 8 : 24,
-              isMobile ? 8 :  24,
+              isMobile ? 8 : 24,
               isMobile ? 16 : 32,
             ),
-            child:  SingleChildScrollView(
-              child:  Column(
+            child: SingleChildScrollView(
+              child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
@@ -143,27 +149,32 @@ class _DashboardPageContentState extends State<_DashboardPageContent> {
                     children: [
                       Expanded(
                         child: Column(
-                          crossAxisAlignment:  CrossAxisAlignment.start,
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
                               'Rapports et Analyse',
-                              style: Theme.of(context).textTheme.headlineSmall ??
+                              style:
+                                  Theme.of(context).textTheme.headlineSmall ??
                                   const TextStyle(
                                     fontSize: 32,
-                                    fontWeight:  FontWeight.w700,
-                                    color:  kTextPrimary,
+                                    fontWeight: FontWeight.w700,
+                                    color: kTextPrimary,
                                   ),
                             ),
                             const SizedBox(height: 6),
                             const Text(
                               'Aperçus et métriques de performance',
-                              style: TextStyle(fontSize: 16, color: kTextSecondary),
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: kTextSecondary,
+                              ),
                             ),
                           ],
                         ),
                       ),
+
                       Container(
-                        height: 48,
+                        height: 41.5,
                         decoration: BoxDecoration(
                           color: kSurface,
                           border: Border.all(color: kBorder),
@@ -171,7 +182,7 @@ class _DashboardPageContentState extends State<_DashboardPageContent> {
                           boxShadow: [
                             BoxShadow(
                               color: Colors.black.withOpacity(0.04),
-                              blurRadius:  18,
+                              blurRadius: 18,
                               offset: const Offset(0, 8),
                             ),
                           ],
@@ -181,41 +192,82 @@ class _DashboardPageContentState extends State<_DashboardPageContent> {
                           child: DropdownButton<String>(
                             value: selectedRange,
                             items: const [
-                              DropdownMenuItem(value: 'Today', child: Text('Aujourd\'hui')),
-                              DropdownMenuItem(value: 'This Month', child: Text('Ce mois')),
-                              DropdownMenuItem(value: 'This Quarter', child: Text('Ce trimestre')),
-                              DropdownMenuItem(value: 'This Year', child: Text('Cette année')),
-                              DropdownMenuItem(value: 'Last Year', child: Text('L\'année dernière')),
+                              DropdownMenuItem(
+                                value: 'Today',
+                                child: Text('Aujourd\'hui'),
+                              ),
+                              DropdownMenuItem(
+                                value: 'This Month',
+                                child: Text('Ce mois'),
+                              ),
+                              DropdownMenuItem(
+                                value: 'This Quarter',
+                                child: Text('Ce trimestre'),
+                              ),
+                              DropdownMenuItem(
+                                value: 'This Year',
+                                child: Text('Cette année'),
+                              ),
+                              DropdownMenuItem(
+                                value: 'Last Year',
+                                child: Text('L\'année dernière'),
+                              ),
                             ],
                             onChanged: (v) {
                               if (v != null) {
                                 _onDateRangeChanged(v);
                               }
                             },
-                            icon:  const Icon(Icons.keyboard_arrow_down_rounded),
+                            icon: const Icon(
+                              Icons.keyboard_arrow_down_rounded,
+                              size: 20,
+                            ),
                             borderRadius: BorderRadius.circular(12),
-                            style: const TextStyle(color: kTextPrimary, fontSize: 14, fontWeight: FontWeight.w600),
+                            style: const TextStyle(
+                              color: kTextPrimary,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                            ),
+                            isDense: true,
+                            alignment: Alignment.centerLeft,
                           ),
                         ),
                       ),
                       const SizedBox(width: 12),
                       BlocBuilder<DashboardBloc, DashboardState>(
                         builder: (context, state) {
-                          return ElevatedButton. icon(
-                            onPressed:  _isExporting || state is!  DashboardLoadSuccess ? null : () => _exportToPdf(state. metrics),
+                          return ElevatedButton.icon(
+                            onPressed:
+                                _isExporting || state is! DashboardLoadSuccess
+                                ? null
+                                : () => _exportToPdf(state.metrics),
                             icon: _isExporting
                                 ? const SizedBox(
                                     width: 16,
-                                    height: 16,
-                                    child:  CircularProgressIndicator(strokeWidth: 2, valueColor: AlwaysStoppedAnimation<Color>(kTextSecondary)),
+                                    height: 15,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      valueColor: AlwaysStoppedAnimation<Color>(
+                                        kTextSecondary,
+                                      ),
+                                    ),
                                   )
-                                : const Icon(Icons.file_download_outlined, size: 20),
-                            label: Text(_isExporting ? 'Export.. .' : 'Rapport d\'exportation'),
+                                : const Icon(
+                                    Icons.file_download_outlined,
+                                    size: 20,
+                                  ),
+                            label: Text(
+                              _isExporting
+                                  ? 'Export.. .'
+                                  : 'Exporter le rapport',
+                            ),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: kSurface,
                               foregroundColor: kTextPrimary,
                               elevation: 0,
-                              padding: const EdgeInsets.symmetric(horizontal: 16),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                              ),
                               minimumSize: const Size(0, 48),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12),
@@ -234,7 +286,12 @@ class _DashboardPageContentState extends State<_DashboardPageContent> {
                         return const Center(child: CircularProgressIndicator());
                       }
                       if (state is DashboardOperationFailure) {
-                        return Center(child: Text('Erreur: ${state.message}', style: const TextStyle(color: Colors.red)));
+                        return Center(
+                          child: Text(
+                            'Erreur: ${state.message}',
+                            style: const TextStyle(color: Colors.red),
+                          ),
+                        );
                       }
                       if (state is DashboardLoadSuccess) {
                         final metrics = state.metrics;
@@ -252,7 +309,8 @@ class _DashboardPageContentState extends State<_DashboardPageContent> {
                                     icon: Icons.attach_money_rounded,
                                     trendingIcon: Icons.trending_up_rounded,
                                     title: 'Revenu total',
-                                    value: '${metrics.totalRevenue.toStringAsFixed(0)} DA',
+                                    value:
+                                        '${metrics.totalRevenue.toStringAsFixed(0)} DA',
                                     subNote: '', // Empty string - no trend
                                   ),
                                 ),
@@ -263,8 +321,8 @@ class _DashboardPageContentState extends State<_DashboardPageContent> {
                                     icon: Icons.people_alt_rounded,
                                     trendingIcon: Icons.trending_up_rounded,
                                     title: 'Patients totaux',
-                                    value:  '${metrics.totalPatients}',
-                                    subNote:  '', // Empty string - no trend
+                                    value: '${metrics.totalPatients}',
+                                    subNote: '', // Empty string - no trend
                                   ),
                                 ),
                                 SizedBox(
@@ -274,7 +332,7 @@ class _DashboardPageContentState extends State<_DashboardPageContent> {
                                     icon: Icons.event_available_rounded,
                                     trendingIcon: Icons.trending_up_rounded,
                                     title: 'Rendez-vous',
-                                    value:  '${metrics.completedAppointments}',
+                                    value: '${metrics.completedAppointments}',
                                     subNote: '', // Empty string - no trend
                                   ),
                                 ),
@@ -283,9 +341,10 @@ class _DashboardPageContentState extends State<_DashboardPageContent> {
                                   child: MetricCard(
                                     color: kAvgRevColor,
                                     icon: Icons.bar_chart_rounded,
-                                    trendingIcon: Icons. trending_up_rounded,
+                                    trendingIcon: Icons.trending_up_rounded,
                                     title: 'Rév. moy/Patient',
-                                    value: '${metrics.averageRevenuePerPatient.toStringAsFixed(0)} DA',
+                                    value:
+                                        '${metrics.averageRevenuePerPatient.toStringAsFixed(0)} DA',
                                     subNote: '', // Empty string - no trend
                                   ),
                                 ),
@@ -294,18 +353,25 @@ class _DashboardPageContentState extends State<_DashboardPageContent> {
                           },
                         );
                       }
-                      return const SizedBox. shrink();
+                      return const SizedBox.shrink();
                     },
                   ),
                   const SizedBox(height: 18),
                   PillTabs(
-                    items: const ['Chiffre d\'affaires', 'Patients', 'Traitements', 'Performance'],
+                    items: const [
+                      'Chiffre d\'affaires',
+                      'Patients',
+                      'Traitements',
+                      'Performance',
+                    ],
                     currentIndex: currentTab,
                     onChanged: (i) => setState(() => currentTab = i),
                   ),
                   const SizedBox(height: 24),
                   SizedBox(
-                    height:  isMobile ? screenHeight * 0.8 : (isTablet ? 540 : 600),
+                    height: isMobile
+                        ? screenHeight * 0.8
+                        : (isTablet ? 540 : 600),
                     child: _buildTabBody(screenWidth, screenHeight),
                   ),
                 ],
@@ -327,15 +393,27 @@ class _DashboardPageContentState extends State<_DashboardPageContent> {
   Widget _buildTabBody(double screenWidth, double screenHeight) {
     switch (currentTab) {
       case 0:
-        return RevenuePanel(screenWidth: screenWidth, screenHeight:  screenHeight);
+        return RevenuePanel(
+          screenWidth: screenWidth,
+          screenHeight: screenHeight,
+        );
       case 1:
-        return PatientsPanel(screenWidth: screenWidth, screenHeight: screenHeight);
+        return PatientsPanel(
+          screenWidth: screenWidth,
+          screenHeight: screenHeight,
+        );
       case 2:
-        return TreatmentsPanel(screenWidth:  screenWidth, screenHeight: screenHeight);
+        return TreatmentsPanel(
+          screenWidth: screenWidth,
+          screenHeight: screenHeight,
+        );
       case 3:
-        return PerformancePanel(screenWidth: screenWidth, screenHeight: screenHeight);
+        return PerformancePanel(
+          screenWidth: screenWidth,
+          screenHeight: screenHeight,
+        );
       default:
-        return const SizedBox. shrink();
+        return const SizedBox.shrink();
     }
   }
 
@@ -345,22 +423,32 @@ class _DashboardPageContentState extends State<_DashboardPageContent> {
     try {
       final currentYear = DateTime.now().year;
 
-      context.read<RevenueBloc>().add(LoadRevenueChart(year:  currentYear));
+      context.read<RevenueBloc>().add(LoadRevenueChart(year: currentYear));
       context.read<PatientsBloc>().add(LoadPatientsChart(year: currentYear));
       context.read<TreatmentsBloc>().add(LoadTreatmentsChart());
-      context.read<PerformanceBloc>().add(LoadPerformanceChart(year: currentYear));
+      context.read<PerformanceBloc>().add(
+        LoadPerformanceChart(year: currentYear),
+      );
 
       await Future.delayed(const Duration(milliseconds: 2000));
 
       final revenueState = context.read<RevenueBloc>().state;
-      final patientsState = context. read<PatientsBloc>().state;
+      final patientsState = context.read<PatientsBloc>().state;
       final treatmentsState = context.read<TreatmentsBloc>().state;
       final performanceState = context.read<PerformanceBloc>().state;
 
-      final revenueData = revenueState is RevenueLoadSuccess ? revenueState.chartData : null;
-      final patientsData = patientsState is PatientsLoadSuccess ? patientsState.chartData : null;
-      final treatmentsData = treatmentsState is TreatmentsLoadSuccess ? treatmentsState. chartData : null;
-      final performanceData = performanceState is PerformanceLoadSuccess ? performanceState.chartData : null;
+      final revenueData = revenueState is RevenueLoadSuccess
+          ? revenueState.chartData
+          : null;
+      final patientsData = patientsState is PatientsLoadSuccess
+          ? patientsState.chartData
+          : null;
+      final treatmentsData = treatmentsState is TreatmentsLoadSuccess
+          ? treatmentsState.chartData
+          : null;
+      final performanceData = performanceState is PerformanceLoadSuccess
+          ? performanceState.chartData
+          : null;
 
       await PdfExportService.generateDashboardReport(
         metrics: metrics,
@@ -373,14 +461,22 @@ class _DashboardPageContentState extends State<_DashboardPageContent> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('✓ Rapport PDF enregistré avec succès! '), backgroundColor: Colors.green, duration: Duration(seconds: 3)),
+          const SnackBar(
+            content: Text('✓ Rapport PDF enregistré avec succès! '),
+            backgroundColor: Colors.green,
+            duration: Duration(seconds: 3),
+          ),
         );
       }
     } catch (e) {
       print('PDF Export Error: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur:  $e'), backgroundColor: Colors.red, duration: const Duration(seconds: 4)),
+          SnackBar(
+            content: Text('Erreur:  $e'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 4),
+          ),
         );
       }
     } finally {
