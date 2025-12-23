@@ -174,7 +174,7 @@ class _DashboardPageContentState extends State<_DashboardPageContent> {
                       ),
 
                       Container(
-                        height: 41.5,
+                        height: 40,
                         decoration: BoxDecoration(
                           color: kSurface,
                           border: Border.all(color: kBorder),
@@ -244,7 +244,7 @@ class _DashboardPageContentState extends State<_DashboardPageContent> {
                             icon: _isExporting
                                 ? const SizedBox(
                                     width: 16,
-                                    height: 15,
+                                    height: 18,
                                     child: CircularProgressIndicator(
                                       strokeWidth: 2,
                                       valueColor: AlwaysStoppedAnimation<Color>(
