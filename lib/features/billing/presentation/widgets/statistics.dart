@@ -1,118 +1,89 @@
 import 'package:flutter/material.dart';
 import 'package:dentist_ms/core/constants/app_colors.dart';
-import 'package:dentist_ms/core/constants/app_text_styles.dart';
 import '../../utils/billing_responsive_helper.dart';
 
-class BillingStatCard extends StatelessWidget {
+class BillingStatCard extends StatefulWidget {
   final String title;
   final String value;
+  final Color color;
   final IconData icon;
-  final Color iconColor;
-  final Color backgroundColor;
-  final String? trendPercentage;
-  final bool? isPositiveTrend;
 
   const BillingStatCard({
     Key? key,
     required this.title,
     required this.value,
+    required this.color,
     required this.icon,
-    required this.iconColor,
-    required this.backgroundColor,
-    this.trendPercentage,
-    this.isPositiveTrend,
   }) : super(key: key);
+
+  @override
+  State<BillingStatCard> createState() => _BillingStatCardState();
+}
+
+class _BillingStatCardState extends State<BillingStatCard> {
+  bool _isHovered = false;
 
   @override
   Widget build(BuildContext context) {
     return Expanded(
-      child: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: AppColors.white,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.shadow.withOpacity(0.08),
-              blurRadius: 20,
-              offset: const Offset(0, 4),
+      child: MouseRegion(
+        onEnter: (_) => setState(() => _isHovered = true),
+        onExit: (_) => setState(() => _isHovered = false),
+        cursor: SystemMouseCursors.click,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: _isHovered
+                  ? widget.color.withOpacity(0.5)
+                  : const Color(0xFFE5E7EB),
+              width: _isHovered ? 2 : 1,
             ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: backgroundColor,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(icon, color: iconColor, size: 24),
+            boxShadow: [
+              if (_isHovered)
+                BoxShadow(
+                  color: widget.color.withOpacity(0.2),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
                 ),
-                if (trendPercentage != null && isPositiveTrend != null)
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
                   Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
+                    width: 8,
+                    height: 8,
                     decoration: BoxDecoration(
-                      color: isPositiveTrend!
-                          ? AppColors.statusCompleted.withOpacity(0.1)
-                          : AppColors.statusCancelled.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          isPositiveTrend!
-                              ? Icons.arrow_upward
-                              : Icons.arrow_downward,
-                          size: 14,
-                          color: isPositiveTrend!
-                              ? AppColors.statusCompleted
-                              : AppColors.statusCancelled,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          trendPercentage!,
-                          style: AppTextStyles.smallLabel.copyWith(
-                            color: isPositiveTrend!
-                                ? AppColors.statusCompleted
-                                : AppColors.statusCancelled,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
+                      color: widget.color,
+                      shape: BoxShape.circle,
                     ),
                   ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Text(
-              title,
-              style: AppTextStyles.smallLabel.copyWith(
-                color: AppColors.textSecondary,
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      widget.title,
+                      style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                    ),
+                  ),
+                  Icon(widget.icon, color: widget.color, size: 20),
+                ],
               ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              value,
-              style: AppTextStyles.numberHighlight.copyWith(
-                color: AppColors.textPrimary,
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
+              const SizedBox(height: 8),
+              Text(
+                widget.value,
+                style: const TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -124,7 +95,7 @@ class BillingStatisticsSection extends StatelessWidget {
   final double totalRevenue;
   final double pendingPayments;
   final double overdue;
-  final double thisMonth;
+  final double netProfit;
 
   const BillingStatisticsSection({
     Key? key,
@@ -132,7 +103,7 @@ class BillingStatisticsSection extends StatelessWidget {
     required this.totalRevenue,
     required this.pendingPayments,
     required this.overdue,
-    required this.thisMonth,
+    required this.netProfit,
   }) : super(key: key);
 
   @override
@@ -166,39 +137,27 @@ class BillingStatisticsSection extends StatelessWidget {
     return [
       BillingStatCard(
         title: 'Revenu total',
-        value: '\$${_formatCurrency(totalRevenue)}',
+        value: '${_formatCurrency(totalRevenue)} DA',
+        color: AppColors.cardGreen,
         icon: Icons.attach_money,
-        iconColor: AppColors.cardGreen,
-        backgroundColor: AppColors.cardGreen.withOpacity(0.1),
-        trendPercentage: '+20%',
-        isPositiveTrend: true,
       ),
       BillingStatCard(
         title: 'Paiements en attente',
-        value: '\$${_formatCurrency(pendingPayments)}',
+        value: '${_formatCurrency(pendingPayments)} DA',
+        color: AppColors.cardOrange,
         icon: Icons.pending_actions,
-        iconColor: AppColors.cardOrange,
-        backgroundColor: AppColors.cardOrange.withOpacity(0.1),
-        trendPercentage: '-15%',
-        isPositiveTrend: false,
       ),
       BillingStatCard(
         title: 'En retard',
-        value: '\$${_formatCurrency(overdue)}',
+        value: '${_formatCurrency(overdue)} DA',
+        color: AppColors.statusCancelled,
         icon: Icons.warning_amber,
-        iconColor: AppColors.statusCancelled,
-        backgroundColor: AppColors.statusCancelled.withOpacity(0.1),
-        trendPercentage: '+18%',
-        isPositiveTrend: false,
       ),
       BillingStatCard(
-        title: 'Ce mois-ci',
-        value: '\$${_formatCurrency(thisMonth)}',
-        icon: Icons.calendar_today,
-        iconColor: AppColors.cardBlue,
-        backgroundColor: AppColors.cardBlue.withOpacity(0.1),
-        trendPercentage: '+12%',
-        isPositiveTrend: true,
+        title: 'Profit Net',
+        value: '${_formatCurrency(netProfit)} DA',
+        color: AppColors.cardGreen,
+        icon: Icons.trending_up,
       ),
     ];
   }

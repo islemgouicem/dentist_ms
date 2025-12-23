@@ -1,15 +1,41 @@
+import 'package:dentist_ms/features/billing/bloc/payment_bloc.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:dentist_ms/core/constants/app_colors.dart';
-import '../widgets/header.dart';
-import '../widgets/statistics.dart';
-
-import '../widgets/invoices.dart';
-
-import '../widgets/services.dart';
-import '../widgets/expenses.dart';
-import '../widgets/payment_history.dart';
-
-import '../../utils/billing_responsive_helper.dart';
+import 'package:dentist_ms/features/billing/presentation/widgets/header.dart';
+import 'package:dentist_ms/features/billing/presentation/widgets/statistics.dart';
+import 'package:dentist_ms/features/billing/presentation/widgets/invoices.dart';
+import 'package:dentist_ms/features/billing/presentation/widgets/treatments.dart';
+import 'package:dentist_ms/features/billing/presentation/widgets/expenses.dart';
+import 'package:dentist_ms/features/billing/presentation/widgets/payment_history.dart';
+import 'package:dentist_ms/features/billing/utils/billing_responsive_helper.dart';
+import 'package:dentist_ms/features/billing/models/invoice.dart';
+import 'package:dentist_ms/features/billing/models/payment.dart';
+import 'package:dentist_ms/features/billing/bloc/invoice_bloc.dart';
+import 'package:dentist_ms/features/billing/bloc/invoice_event.dart';
+import 'package:dentist_ms/features/billing/bloc/invoice_state.dart';
+import 'package:dentist_ms/features/billing/bloc/invoice_item_bloc.dart';
+import 'package:dentist_ms/features/billing/bloc/invoice_item_event.dart';
+import 'package:dentist_ms/features/billing/bloc/expense_bloc.dart';
+import 'package:dentist_ms/features/billing/bloc/expense_event.dart';
+import 'package:dentist_ms/features/billing/bloc/expense_state.dart';
+import 'package:dentist_ms/features/billing/bloc/payment_event.dart';
+import 'package:dentist_ms/features/billing/bloc/payment_state.dart';
+import 'package:dentist_ms/features/billing/bloc/treatment_bloc.dart';
+import 'package:dentist_ms/features/billing/bloc/treatment_event.dart';
+import 'package:dentist_ms/features/billing/bloc/treatment_state.dart';
+import 'package:dentist_ms/features/billing/repositories/payment_repository.dart';
+import 'package:dentist_ms/features/billing/repositories/invoice_repository.dart';
+import 'package:dentist_ms/features/billing/repositories/invoice_item_repository.dart';
+import 'package:dentist_ms/features/billing/repositories/expense_repository.dart';
+import 'package:dentist_ms/features/billing/repositories/treatment_repository.dart';
+import 'package:dentist_ms/features/billing/data/invoice_remote.dart';
+import 'package:dentist_ms/features/billing/data/invoice_item_remote.dart';
+import 'package:dentist_ms/features/billing/data/expense_remote.dart';
+import 'package:dentist_ms/features/billing/data/treatment_remote.dart';
+import 'package:dentist_ms/features/billing/data/payment_remote.dart';
+import 'package:dentist_ms/features/billing/models/expense.dart';
+import 'package:dentist_ms/features/billing/models/treatment.dart';
 
 class BillingsPage extends StatefulWidget {
   const BillingsPage({Key? key}) : super(key: key);
@@ -18,143 +44,79 @@ class BillingsPage extends StatefulWidget {
   State<BillingsPage> createState() => _BillingsPageState();
 }
 
+class BillingsPageWrapper extends StatelessWidget {
+  const BillingsPageWrapper({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(
+          create: (context) => InvoiceBloc(
+            repository: SupabaseInvoiceRepository(
+              remote: InvoiceRemoteDataSource(),
+            ),
+          )..add(LoadInvoices()),
+        ),
+        BlocProvider(
+          create: (context) => InvoiceItemBloc(
+            repository: SupabaseInvoiceItemRepository(
+              remote: InvoiceItemRemoteDataSource(),
+            ),
+            paymentRepository: SupabasePaymentRepository(
+              remote: PaymentRemoteDataSource(),
+            ),
+          )..add(LoadInvoiceItems()),
+        ),
+        BlocProvider(
+          create: (context) => ExpenseBloc(
+            repository: SupabaseExpenseRepository(
+              remote: ExpenseRemoteDataSource(),
+            ),
+          )..add(LoadExpenses()),
+        ),
+        BlocProvider(
+          create: (context) => TreatmentBloc(
+            repository: SupabaseTreatmentRepository(
+              remote: TreatmentRemoteDataSource(),
+            ),
+          )..add(LoadTreatments()),
+        ),
+        BlocProvider(
+          create: (context) => PaymentBloc(
+            repository: SupabasePaymentRepository(
+              remote: PaymentRemoteDataSource(),
+            ),
+          )..add(LoadPayments()),
+        ),
+      ],
+      child: const BillingsPage(),
+    );
+  }
+}
+
 class _BillingsPageState extends State<BillingsPage>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   String _selectedStatus = 'Tous les statuts';
+  String _invoiceSearchQuery = '';
+  String _treatmentSearchQuery = '';
+  String _selectedCategory = 'Toutes les catégories';
+  String _selectedPatient = 'Tous les patients';
 
-  // Statistics data - will be fetched from backend
   double _totalRevenue = 0.0;
   double _pendingPayments = 0.0;
   double _overdue = 0.0;
-  double _thisMonth = 0.0;
-
-  // Placeholder data - will be replaced with backend data
-  final List<Map<String, dynamic>> _invoices = [
-    {
-      'id': 'FAC-001',
-      'patient': 'Jean Dupont',
-      'date': '2024-10-15',
-      'amount': 1500.00,
-      'paid': 1500.00,
-      'status': 'paid',
-      'treatment': 'Traitement de canal',
-    },
-    {
-      'id': 'FAC-002',
-      'patient': 'Marie Martin',
-      'date': '2024-10-16',
-      'amount': 800.00,
-      'paid': 400.00,
-      'status': 'partial',
-      'treatment': 'Nettoyage dentaire',
-    },
-    {
-      'id': 'FAC-003',
-      'patient': 'Pierre Bernard',
-      'date': '2024-10-17',
-      'amount': 2500.00,
-      'paid': 2500.00,
-      'status': 'paid',
-      'treatment': 'Implant dentaire',
-    },
-    {
-      'id': 'FAC-004',
-      'patient': 'Sophie Dubois',
-      'date': '2024-10-18',
-      'amount': 600.00,
-      'paid': 0.00,
-      'status': 'unpaid',
-      'treatment': 'Plombage',
-    },
-    {
-      'id': 'FAC-005',
-      'patient': 'Luc Moreau',
-      'date': '2024-10-19',
-      'amount': 1200.00,
-      'paid': 1200.00,
-      'status': 'paid',
-      'treatment': 'Couronne',
-    },
-  ];
-  // Update the _expenses list in _BillingsPageState class
-  final List<Map<String, dynamic>> _expenses = [
-    {
-      'date': '2025-10-12',
-      'description': 'Commande de fournitures dentaires',
-      'category': 'Fournitures dentaires',
-      'amount': 1250.00,
-    },
-    {
-      'date': '2025-10-10',
-      'description': 'Fabrication de couronne',
-      'category': 'Équipement',
-      'amount': 600.00,
-    },
-    {
-      'date': '2025-10-08',
-      'description': 'Entretien de l\'équipement',
-      'category': 'Entretien',
-      'amount': 450.00,
-    },
-    {
-      'date': '2025-10-05',
-      'description': 'Services publics mensuels',
-      'category': 'Services publics',
-      'amount': 320.00,
-    },
-  ];
-  final List<Map<String, dynamic>> _services = [
-    {'name': 'Nettoyage dentaire', 'price': 150.00},
-    {'name': 'Plombage dentaire', 'price': 280.00},
-    {'name': 'Traitement de canal', 'price': 1200.00},
-    {'name': 'Couronne', 'price': 1800.00},
-    {'name': 'Extraction dentaire', 'price': 350.00},
-    {'name': 'Blanchiment des dents', 'price': 500.00},
-  ];
-
-  final List<Map<String, dynamic>> _payments = [
-    {
-      'date': '2025-10-20',
-      'invoiceId': 'FAC-001',
-      'patient': 'Jean Dupont',
-      'amount': 1500.00,
-
-      'status': 'Terminé',
-    },
-    {
-      'date': '2025-10-19',
-      'invoiceId': 'FAC-005',
-      'patient': 'Luc Moreau',
-      'amount': 1200.00,
-
-      'status': 'Terminé',
-    },
-    {
-      'date': '2025-10-17',
-      'invoiceId': 'FAC-003',
-      'patient': 'Pierre Bernard',
-      'amount': 2500.00,
-
-      'status': 'Terminé',
-    },
-    {
-      'date': '2025-10-16',
-      'invoiceId': 'FAC-002',
-      'patient': 'Marie Martin',
-      'amount': 400.00,
-
-      'status': 'Terminé',
-    },
-  ];
+  double _netProfit = 0.0;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 4, vsync: this);
-    _calculateStatistics();
-    // TODO: Fetch statistics from backend
-    // _fetchStatisticsFromBackend();
+    // Load invoices on init
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<InvoiceBloc>().add(LoadInvoices());
+    });
   }
 
   @override
@@ -163,41 +125,47 @@ class _BillingsPageState extends State<BillingsPage>
     super.dispose();
   }
 
-  // Calculate statistics from invoice data
-  void _calculateStatistics() {
+  void _calculateStatistics(
+    List<Invoice> invoices,
+    List<Payment> payments,
+    List<Expense> expenses,
+  ) {
     double totalRevenue = 0.0;
     double pendingPayments = 0.0;
     double overdue = 0.0;
-    double thisMonth = 0.0;
+    double totalExpenses = 0.0;
 
     final now = DateTime.now();
-    final currentMonth = now.month;
-    final currentYear = now.year;
 
-    for (var invoice in _invoices) {
-      final amount = invoice['amount'] as double;
-      final paid = invoice['paid'] as double;
-      final balance = amount - paid;
-      final status = invoice['status'] as String;
-      final invoiceDate = DateTime.parse(invoice['date']);
+    // Calculate total revenue from all payments (all-time)
+    for (var payment in payments) {
+      totalRevenue += payment.amount ?? 0.0;
+    }
 
-      // Total revenue (all paid amounts)
-      totalRevenue += paid;
+    // Calculate total expenses
+    for (var expense in expenses) {
+      totalExpenses += expense.amount ?? 0.0;
+    }
 
-      // Pending payments (partial and unpaid)
-      if (status == 'partial' || status == 'unpaid') {
+    // Calculate pending payments and overdue amounts
+    for (var invoice in invoices) {
+      final totalAmount = invoice.totalAmount ?? 0.0;
+
+      // Calculate actual payments received for this invoice
+      final actualPayments = payments
+          .where((payment) => payment.invoiceId == invoice.id)
+          .fold(0.0, (sum, payment) => sum + (payment.amount ?? 0.0));
+
+      final balance = totalAmount - actualPayments;
+
+      // Only count positive balances as pending
+      if (balance > 0) {
         pendingPayments += balance;
-      }
 
-      // Overdue (unpaid invoices)
-      if (status == 'unpaid') {
-        overdue += balance;
-      }
-
-      // This month revenue
-      if (invoiceDate.month == currentMonth &&
-          invoiceDate.year == currentYear) {
-        thisMonth += paid;
+        // Check if this balance is overdue
+        if (invoice.dueDate != null && invoice.dueDate!.isBefore(now)) {
+          overdue += balance;
+        }
       }
     }
 
@@ -205,22 +173,31 @@ class _BillingsPageState extends State<BillingsPage>
       _totalRevenue = totalRevenue;
       _pendingPayments = pendingPayments;
       _overdue = overdue;
-      _thisMonth = thisMonth;
+      _netProfit = totalRevenue - totalExpenses;
     });
   }
 
-  List<Map<String, dynamic>> get _filteredInvoices {
-    if (_selectedStatus == 'Tous les statuts') {
-      return _invoices;
-    }
+  List<Invoice> _filterInvoices(List<Invoice> invoices) {
+    return invoices.where((invoice) {
+      // Filter by status
+      bool statusMatch = true;
+      if (_selectedStatus != 'Tous les statuts') {
+        String statusFilter = _selectedStatus.toLowerCase();
+        if (statusFilter == 'payé') statusFilter = 'paid';
+        if (statusFilter == 'partiel') statusFilter = 'partial';
+        if (statusFilter == 'non payé') statusFilter = 'unpaid';
+        statusMatch = (invoice.status?.toLowerCase() ?? '') == statusFilter;
+      }
 
-    String statusFilter = _selectedStatus.toLowerCase();
-    if (statusFilter == 'payé') statusFilter = 'paid';
-    if (statusFilter == 'partiel') statusFilter = 'partial';
-    if (statusFilter == 'non payé') statusFilter = 'unpaid';
+      // Filter by patient search
+      bool searchMatch = true;
+      if (_invoiceSearchQuery.isNotEmpty) {
+        searchMatch = (invoice.patientName?.toLowerCase() ?? '').contains(
+          _invoiceSearchQuery.toLowerCase(),
+        );
+      }
 
-    return _invoices.where((invoice) {
-      return invoice['status'].toLowerCase() == statusFilter;
+      return statusMatch && searchMatch;
     }).toList();
   }
 
@@ -230,40 +207,114 @@ class _BillingsPageState extends State<BillingsPage>
     });
   }
 
+  List<Treatment> _filterTreatments(List<Treatment> treatments) {
+    if (_treatmentSearchQuery.isEmpty) {
+      return treatments;
+    }
+    return treatments.where((treatment) {
+      return (treatment.name?.toLowerCase() ?? '').contains(
+        _treatmentSearchQuery.toLowerCase(),
+      );
+    }).toList();
+  }
+
+  List<Expense> _filterExpenses(List<Expense> expenses) {
+    if (_selectedCategory == 'Toutes les catégories') {
+      return expenses;
+    }
+    return expenses.where((expense) {
+      return (expense.categoryName ?? '-') == _selectedCategory;
+    }).toList();
+  }
+
+  List<Payment> _filterPayments(List<Payment> payments) {
+    if (_selectedPatient == 'Tous les patients') {
+      return payments;
+    }
+    return payments.where((payment) {
+      return (payment.patientName ?? '-') == _selectedPatient;
+    }).toList();
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          final responsive = BillingResponsiveHelper(constraints.maxWidth);
+    return MultiBlocListener(
+      listeners: [
+        BlocListener<InvoiceBloc, InvoiceState>(
+          listener: (context, state) {
+            if (state is InvoicesLoadSuccess) {
+              _tryCalculateStatistics(context);
+            }
+          },
+        ),
+        BlocListener<PaymentBloc, PaymentState>(
+          listener: (context, state) async {
+            if (state is PaymentsLoadSuccess) {
+              _tryCalculateStatistics(context);
+              // Add small delay to ensure database transaction completes
+              await Future.delayed(const Duration(milliseconds: 100));
+              // Reload invoices to update status when payments change
+              if (context.mounted) {
+                context.read<InvoiceBloc>().add(LoadInvoices());
+              }
+            }
+          },
+        ),
+        BlocListener<ExpenseBloc, ExpenseState>(
+          listener: (context, state) {
+            if (state is ExpensesLoadSuccess) {
+              _tryCalculateStatistics(context);
+            }
+          },
+        ),
+      ],
+      child: Scaffold(
+        backgroundColor: AppColors.background,
+        body: LayoutBuilder(
+          builder: (context, constraints) {
+            final responsive = BillingResponsiveHelper(constraints.maxWidth);
 
-          return SingleChildScrollView(
-            child: Padding(
-              padding: responsive.pagePadding,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  BillingHeader(responsive: responsive),
-                  SizedBox(height: responsive.sectionSpacing),
-
-                  BillingStatisticsSection(
-                    responsive: responsive,
-                    totalRevenue: _totalRevenue,
-                    pendingPayments: _pendingPayments,
-                    overdue: _overdue,
-                    thisMonth: _thisMonth,
-                  ),
-                  SizedBox(height: responsive.sectionSpacing),
-
-                  _buildTabSection(responsive),
-                ],
+            return SingleChildScrollView(
+              child: Padding(
+                padding: responsive.pagePadding,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    BillingHeader(responsive: responsive),
+                    SizedBox(height: responsive.sectionSpacing),
+                    BillingStatisticsSection(
+                      responsive: responsive,
+                      totalRevenue: _totalRevenue,
+                      pendingPayments: _pendingPayments,
+                      overdue: _overdue,
+                      netProfit: _netProfit,
+                    ),
+                    SizedBox(height: responsive.sectionSpacing),
+                    _buildTabSection(responsive),
+                  ],
+                ),
               ),
-            ),
-          );
-        },
+            );
+          },
+        ),
       ),
     );
+  }
+
+  void _tryCalculateStatistics(BuildContext context) {
+    final invoiceState = context.read<InvoiceBloc>().state;
+    final paymentState = context.read<PaymentBloc>().state;
+    final expenseState = context.read<ExpenseBloc>().state;
+
+    if (invoiceState is InvoicesLoadSuccess &&
+        paymentState is PaymentsLoadSuccess &&
+        expenseState is ExpensesLoadSuccess) {
+      _calculateStatistics(
+        invoiceState.invoices,
+        paymentState.payments,
+        expenseState.expenses,
+      );
+    }
   }
 
   Widget _buildTabSection(BillingResponsiveHelper responsive) {
@@ -288,7 +339,7 @@ class _BillingsPageState extends State<BillingsPage>
               controller: _tabController,
               children: [
                 _buildInvoicesTab(responsive),
-                _buildServiceCatalogTab(responsive),
+                _buildTreatmentCatalogTab(responsive),
                 _buildExpensesTab(responsive),
                 _buildPaymentHistoryTab(responsive),
               ],
@@ -317,7 +368,7 @@ class _BillingsPageState extends State<BillingsPage>
         ),
         tabs: const [
           Tab(text: 'Factures'),
-          Tab(text: 'Catalogue de services'),
+          Tab(text: 'Catalogue de Traitements'),
           Tab(text: 'Dépenses'),
           Tab(text: 'Historique des paiements'),
         ],
@@ -326,78 +377,241 @@ class _BillingsPageState extends State<BillingsPage>
   }
 
   Widget _buildInvoicesTab(BillingResponsiveHelper responsive) {
-    return SingleChildScrollView(
-      child: Column(
-        children: [
-          BillingTableControls(
-            responsive: responsive,
-            selectedStatus: _selectedStatus,
-            onStatusChanged: _onStatusChanged,
+    return BlocBuilder<InvoiceBloc, InvoiceState>(
+      builder: (context, invoiceState) {
+        List<Invoice> invoices = [];
+
+        if (invoiceState is InvoicesLoadSuccess) {
+          invoices = invoiceState.invoices;
+        } else if (invoiceState is InvoicesLoadInProgress) {
+          return const Center(child: CircularProgressIndicator());
+        } else if (invoiceState is InvoicesOperationFailure) {
+          return Center(
+            child: Text(
+              'Erreur: ${invoiceState.message}',
+              style: const TextStyle(color: Colors.red),
+            ),
+          );
+        }
+
+        final filteredInvoices = _filterInvoices(invoices);
+
+        return SingleChildScrollView(
+          child: Column(
+            children: [
+              BillingTableControls(
+                responsive: responsive,
+                selectedStatus: _selectedStatus,
+                onStatusChanged: _onStatusChanged,
+                onSearchChanged: (query) {
+                  setState(() {
+                    _invoiceSearchQuery = query;
+                  });
+                },
+              ),
+              InvoiceTable(invoices: filteredInvoices, responsive: responsive),
+            ],
           ),
-          BillingDataTable(invoices: _filteredInvoices, responsive: responsive),
-        ],
-      ),
+        );
+      },
     );
   }
 
-  Widget _buildServiceCatalogTab(BillingResponsiveHelper responsive) {
-    return SingleChildScrollView(
-      child: Column(
-        children: [
-          BillingServiceCatalogControls(
-            responsive: responsive,
-            onAddService: () {
-              // TODO: Show add service dialog
-            },
-          ),
-          SizedBox(
-            height: 500,
-            child: BillingServiceCatalogTable(
-              services: _services,
-              responsive: responsive,
+  Widget _buildTreatmentCatalogTab(BillingResponsiveHelper responsive) {
+    return BlocBuilder<TreatmentBloc, TreatmentState>(
+      builder: (context, state) {
+        List<Treatment> treatments = [];
+
+        if (state is TreatmentsLoadSuccess) {
+          treatments = state.treatments;
+        } else if (state is TreatmentsLoadInProgress) {
+          return const Center(child: CircularProgressIndicator());
+        } else if (state is TreatmentsOperationFailure) {
+          return Center(
+            child: Text(
+              'Erreur: ${state.message}',
+              style: const TextStyle(color: Colors.red),
             ),
+          );
+        }
+
+        final filteredTreatments = _filterTreatments(treatments);
+
+        return SingleChildScrollView(
+          child: Column(
+            children: [
+              BillingTreatmentCatalogControls(
+                responsive: responsive,
+                onAddTreatment: () {
+                  // Refresh is handled by BLoC
+                },
+                onSearchChanged: (query) {
+                  setState(() {
+                    _treatmentSearchQuery = query;
+                  });
+                },
+              ),
+              Container(
+                height: 500,
+                child: BillingTreatmentCatalogTable(
+                  treatments: filteredTreatments,
+                  responsive: responsive,
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 
   Widget _buildExpensesTab(BillingResponsiveHelper responsive) {
-    return SingleChildScrollView(
-      child: Column(
-        children: [
-          BillingExpensesControls(
-            responsive: responsive,
-            onAddExpense: () {
-              // TODO: Show add expense dialog
-            },
-          ),
-          SizedBox(
-            height: 500,
-            child: BillingExpensesTable(
-              expenses: _expenses,
-              responsive: responsive,
+    return BlocBuilder<ExpenseBloc, ExpenseState>(
+      builder: (context, state) {
+        List<Expense> expenses = [];
+
+        if (state is ExpensesLoadSuccess) {
+          expenses = state.expenses;
+        } else if (state is ExpensesLoadInProgress) {
+          return const Center(child: CircularProgressIndicator());
+        } else if (state is ExpensesOperationFailure) {
+          return Center(
+            child: Text(
+              'Erreur: ${state.message}',
+              style: const TextStyle(color: Colors.red),
             ),
+          );
+        }
+
+        // Get unique categories
+        final categories =
+            expenses.map((e) => e.categoryName ?? '-').toSet().toList()..sort();
+
+        // Filter expenses
+        final filteredExpenses = _filterExpenses(expenses);
+
+        // Convert Expenses to the expected format for the table
+        final expensesData = filteredExpenses
+            .map(
+              (expense) => {
+                'id': expense.id,
+                'date':
+                    expense.expenseDate?.toIso8601String().split('T').first ??
+                    '',
+                'description': expense.description ?? '',
+                'category': expense.categoryName ?? '-',
+                'categoryId': expense.categoryId,
+                'amount': expense.amount ?? 0.0,
+              },
+            )
+            .toList();
+
+        return SingleChildScrollView(
+          child: Column(
+            children: [
+              BillingExpensesControls(
+                responsive: responsive,
+                onAddExpense: () {
+                  // Refresh is handled by BLoC
+                },
+                selectedCategory: _selectedCategory,
+                onCategoryChanged: (category) {
+                  setState(() {
+                    _selectedCategory = category;
+                  });
+                },
+                categories: categories,
+              ),
+              Container(
+                height: 500,
+                child: BillingExpensesTable(
+                  expenses: expensesData,
+                  responsive: responsive,
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 
   Widget _buildPaymentHistoryTab(BillingResponsiveHelper responsive) {
-    return SingleChildScrollView(
-      child: Column(
-        children: [
-          BillingPaymentHistoryControls(responsive: responsive),
-          SizedBox(
-            height: 500,
-            child: BillingPaymentHistoryTable(
-              payments: _payments,
-              responsive: responsive,
+    return BlocBuilder<PaymentBloc, PaymentState>(
+      builder: (context, state) {
+        List<Payment> payments = [];
+
+        if (state is PaymentsLoadSuccess) {
+          payments = state.payments;
+        } else if (state is PaymentsLoadInProgress) {
+          return const Center(child: CircularProgressIndicator());
+        } else if (state is PaymentsOperationFailure) {
+          return Center(
+            child: Text(
+              'Erreur: ${state.message}',
+              style: const TextStyle(color: Colors.red),
             ),
+          );
+        }
+
+        // Get unique patients
+        final patients =
+            payments.map((p) => p.patientName ?? '-').toSet().toList()..sort();
+
+        // Filter payments
+        final filteredPayments = _filterPayments(payments);
+
+        // Convert Payments to the expected format for the table
+        final paymentsData = filteredPayments
+            .map(
+              (payment) => {
+                'id': payment.id,
+                'invoice_id':
+                    payment.invoiceNumber ??
+                    payment.invoiceId?.toString() ??
+                    '-',
+                'payment_date': payment.paymentDate
+                    ?.toIso8601String()
+                    .split('T')
+                    .first,
+                'amount': payment.amount,
+                'method': payment.method,
+                'reference': payment.reference,
+                'notes': payment.notes,
+                'patient': payment.patientName ?? '-',
+                'status': 'Payé',
+              },
+            )
+            .toList();
+        return SingleChildScrollView(
+          child: Column(
+            children: [
+              BillingPaymentHistoryControls(
+                responsive: responsive,
+                onAddPayment: () {
+                  context.read<PaymentBloc>().add(LoadPayments());
+                  // Also reload invoices to update status
+                  context.read<InvoiceBloc>().add(LoadInvoices());
+                },
+                selectedPatient: _selectedPatient,
+                onPatientChanged: (patient) {
+                  setState(() {
+                    _selectedPatient = patient;
+                  });
+                },
+                patients: patients,
+              ),
+              Container(
+                height: 500,
+                child: BillingPaymentHistoryTable(
+                  payments: paymentsData,
+                  responsive: responsive,
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 }

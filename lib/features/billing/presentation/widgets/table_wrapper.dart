@@ -16,48 +16,43 @@ class BillingTableWrapper extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        if (searchControls != null) searchControls!,
-        Container(
-          width: double.infinity,
-          decoration: BoxDecoration(
-            color: AppColors.white,
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Column(
-            children: [
-              // Header Row
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 24,
-                  vertical: 16,
-                ),
-                decoration: BoxDecoration(
-                  border: Border(
-                    bottom: BorderSide(color: AppColors.border, width: 1),
-                  ),
-                ),
-                child: Row(
-                  children: headers.map((header) {
-                    return Expanded(
-                      child: Text(
-                        header,
-                        style: AppTextStyles.smallLabel.copyWith(
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.textSecondary,
-                        ),
-                      ),
-                    );
-                  }).toList(),
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: SingleChildScrollView(
+        child: Column(
+          children: [
+            if (searchControls != null) searchControls!,
+            // Header Row
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+              decoration: BoxDecoration(
+                border: Border(
+                  bottom: BorderSide(color: AppColors.border, width: 1),
                 ),
               ),
-              // Data Rows
-              ...rows,
-            ],
-          ),
+              child: Row(
+                children: headers.map((header) {
+                  return Expanded(
+                    child: Text(
+                      header,
+                      style: AppTextStyles.smallLabel.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
+            ),
+            // Data Rows
+            ...rows,
+          ],
         ),
-      ],
+      ),
     );
   }
 }
