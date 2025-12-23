@@ -14,11 +14,27 @@ import '../widgets/treatment_row.dart';
 class RevenuePanel extends StatefulWidget {
   final double screenWidth;
   final double screenHeight;
+  
   const RevenuePanel({
     super.key,
     required this.screenWidth,
     required this.screenHeight,
   });
+
+  @override
+  State<RevenuePanel> createState() => _RevenuePanelState();
+}
+
+class _RevenuePanelState extends State<RevenuePanel> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        context.read<RevenueBloc>().add(LoadRevenueChart(year: DateTime. now().year));
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -95,49 +111,10 @@ class RevenuePanel extends StatefulWidget {
                 const Text('Traitements avec les revenus les plus élevés', style: TextStyle(color: kTextSecondary)),
                 const SizedBox(height: 12),
                 Expanded(
-                  child: ScrollConfiguration(
-                    behavior: ScrollConfiguration.of(context).copyWith(
-                      dragDevices: {
-                        PointerDeviceKind.touch,
-                        PointerDeviceKind.mouse,
-                        PointerDeviceKind.trackpad,
-                      },
-                    ),
-                    child: ListView(
-                      padding: EdgeInsets.zero,
-                      children: const [
-                        TreatmentRow(
-                          title: 'Nettoyage dentaire',
-                          amount: '\$21 750',
-                          progress: 0.18,
-                          count: 145,
-                        ),
-                        TreatmentRow(
-                          title: 'Obturation',
-                          amount: '\$24 500',
-                          progress: 0.12,
-                          count: 98,
-                        ),
-                        TreatmentRow(
-                          title: 'Traitement orthodontique',
-                          amount: '\$195 000',
-                          progress: 1.00,
-                          count: 65,
-                        ),
-                        TreatmentRow(
-                          title: 'Traitement radiculaire',
-                          amount: '\$50 400',
-                          progress: 0.32,
-                          count: 42,
-                        ),
-                        TreatmentRow(
-                          title: 'Implant dentaire',
-                          amount: '\$70 000',
-                          progress: 0.28,
-                          count: 28,
-                        ),
-                      ],
-                    ),
+                  child: BlocBuilder<RevenueBloc, RevenueState>(
+                    builder: (context, state) {
+                      return _buildTopTreatments(context, state);
+                    },
                   ),
                 ),
               ],
@@ -224,15 +201,11 @@ class RevenuePanel extends StatefulWidget {
       gridData: FlGridData(
         show: true,
         drawVerticalLine: true,
-        getDrawingHorizontalLine: (_) =>
-            FlLine(color: gridPaint.color, strokeWidth: 1),
-        getDrawingVerticalLine: (_) =>
-            FlLine(color: gridPaint.color, strokeWidth: 1),
+        getDrawingHorizontalLine: (_) => const FlLine(color:  Color(0xFFE8EDF4), strokeWidth: 1),
+        getDrawingVerticalLine: (_) => const FlLine(color: Color(0xFFE8EDF4), strokeWidth: 1),
       ),
       titlesData: FlTitlesData(
-        rightTitles: const AxisTitles(
-          sideTitles: SideTitles(showTitles: false),
-        ),
+        rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
         topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
         leftTitles: AxisTitles(
           sideTitles: SideTitles(
@@ -272,8 +245,8 @@ class RevenuePanel extends StatefulWidget {
           getTooltipItems: (touchedSpots) => touchedSpots.map((s) {
             final isRevenue = s.barIndex == 1;
             return LineTooltipItem(
-              '\$${s.y.toInt()}',
-              const TextStyle(color: kTextPrimary, fontWeight: FontWeight.w700),
+              '${isRevenue ? "Rev" : "Bén"}:  ${_formatYAxisLabel(s.y)}',
+              TextStyle(color: isRevenue ? const Color(0xFF2563EB) : const Color(0xFF10B981), fontWeight: FontWeight.w700, fontSize: 12),
             );
           }).toList(),
         ),
