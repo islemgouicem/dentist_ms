@@ -21,22 +21,14 @@ class _SettingsPageState extends State<SettingsPage> {
   late double height;
   int current_page = 1;
 
-  final ClinicControllers clinicControllers = ClinicControllers();
   final ProfilControllers profilControllers = ProfilControllers();
   final SecurityControllers securityControllers = SecurityControllers();
 
   @override
   void dispose() {
-    clinicControllers.dispose();
     profilControllers.dispose();
     securityControllers.dispose();
     super.dispose();
-  }
-
-  void swap_widget(int i) {
-    setState(() {
-      current_page = i;
-    });
   }
 
   @override
@@ -51,14 +43,13 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
-  // Separate method for the actual content
   Widget _buildSettingsContent() {
     width = MediaQuery.of(context).size.width;
     height = MediaQuery.of(context).size.height;
 
     Widget currentWidget;
     if (current_page == 1) {
-      currentWidget = clinic(context, width, height, clinicControllers); 
+      currentWidget = clinic(context, width, height); 
     } else if (current_page == 2) {
       currentWidget = profil(context, width, height, profilControllers);
     } else {
@@ -123,7 +114,6 @@ class _SettingsPageState extends State<SettingsPage> {
       ),
     );
   }
-
   Widget _buildNavigationTab({
     required int index,
     required IconData icon,
@@ -171,5 +161,9 @@ class _SettingsPageState extends State<SettingsPage> {
         ),
       ),
     );
+  }
+
+  void swap_widget(int i) {
+    setState(() {current_page = i;});
   }
 }
